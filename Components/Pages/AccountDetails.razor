@@ -1,0 +1,41 @@
+﻿@page "/accountdetails"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<h3>Sign in/Create Account</h3>
+
+<div class="input-group mb-4 blockquote">
+  
+  <input type="text" class="form-control" placeholder="Username" aria-label="Username" />
+
+</div>
+
+<div class="input-group mb-4 blockquote ">
+
+    <input type="text" class="form-control" placeholder="Password" aria-label="Password" />
+
+</div>
+
+<div class="input-group mb-4 blockquote"  >
+    <button type="button" class="btn btn-primary col-12" @onclick="NavToHomePage">
+        Sign in
+    </button>
+</div>
+
+<div class="input-group mb-4 blockquote" >
+    <button type="button" class="btn btn-secondary col-12" @onclick="NavToCreateAccount">
+        Create Account
+    </button>
+</div>
+
+@code {
+    private void NavToHomePage()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    private void NavToCreateAccount()
+    {
+        NavigationManager.NavigateTo("createaccount");
+    }
+}

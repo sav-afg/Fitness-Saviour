@@ -1,0 +1,70 @@
+﻿@page "/foodlogging"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<link rel="stylesheet " href="~/customcsspages/FoodLogging.css"/>
+
+<h3>Food Logging</h3>
+<p class="blockquote ">Introductory message + explanation of use</p>
+
+<div class="container-fluid">
+    <div class="row d-flex align-items-stretch">
+
+        <!-- Textarea column -->
+        <div class="col-sm-10 d-flex">
+            <textarea class="form-control w-100" style="resize:none; min-height:70px;"
+                      placeholder="Search for Food Item from Database"></textarea>
+        </div>
+
+        <!-- Button column -->
+        <div class="col-sm-2 d-flex">
+            <p class="w-100 h-100" style="padding: 2px; margin: 2px; border-radius: 5px;">
+                <a href="https://calculator.academy/servings-calculator/">How we calculate serving sizes</a>
+            </p>
+        </div>
+
+    </div>
+</div>
+<hr />
+<div class="container-fluid">
+    <div class="row d-flex align-items-stretch">
+
+        
+        <div class="col-sm-10 d-flex">
+            <ul class="list-group w-100">
+                <li class="list-group-item">An item</li>
+                <li class="list-group-item">A second item</li>
+                <li class="list-group-item">A third item</li>
+                <li class="list-group-item">A fourth item</li>
+                <li class="list-group-item">And a fifth one</li>
+            </ul>
+        </div>
+
+       
+        <div class="col-sm-2 d-flex flex-column">
+
+            
+            <div class="flex-grow-2 mb-2">
+                <textarea class="form-control w-100 h-100"
+                          placeholder="Input serving size"></textarea>
+            </div>
+
+       
+            <div class="flex-grow-1">
+                <div class="form-control d-flex justify-content-center align-items-center h-100">                  
+                    Food grade: A
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div class="piechart"></div>
+
+
+
+@code {
+
+}

@@ -1,0 +1,42 @@
+﻿@page "/createaccount"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+
+<h3>CreateAccount</h3>
+
+<div class="input-group mb-4 blockquote">
+    <input type="text" class="form-control" placeholder="Username" aria-label="Username" />
+</div>
+
+<div class="input-group mb-4 blockquote ">
+    <input type="text" class="form-control" placeholder="Password" aria-label="Password" />
+</div>
+
+<div class="input-group mb-4 blockquote ">
+    <input type="text" class="form-control" placeholder="Confirm Password"
+        aria-label="Confirm Password" />
+</div>
+
+<div class="input-group mb-4 blockquote ">
+    <input type="email" class="form-control" placeholder="Email"
+           aria-label="Email" />
+</div>
+
+<div class="input-group mb-4 blockquote ">
+    <input type="tel" class="form-control" placeholder="Mobile Number (optional)"
+           aria-label="Mobile Number" />
+</div>
+
+<div class="input-group mb-4 blockquote">
+    <button type="button" class="btn btn-primary col-12" @onclick="NavToAccountDetails">
+        Create Account
+    </button>
+</div>
+
+@code {
+    private void NavToAccountDetails()
+    {
+        NavigationManager.NavigateTo("accountdetails");
+    }
+}

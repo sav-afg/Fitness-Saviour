@@ -1,0 +1,104 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>HomePage</PageTitle>
+
+
+<div class="container-fluid text-center">
+    <div class="row" style="margin:2%;">
+        <div class="col-sm-6">
+            @* <p>UI personalisation</p> *@
+            <button type="button" class="btn btn-primary">
+                UI personalisation
+            </button>
+        </div>
+
+        <div class="col-sm-6">
+            @* <p>Sign in/Create Account</p> *@
+            <button type="button" class="btn btn-primary" @onclick="NavToAccountDetails">
+                Sign in/Create Account
+            </button>
+        </div>
+    </div>
+</div>
+
+@* Welcome message *@
+<div class="container-fluid text-center">
+    <div class="row" style="margin:2%;">
+        <p>Welcome message/Motivational</p>
+    </div>
+</div>
+
+@* images *@
+<div class="container-fluid text-center">
+    <div class="row" style="margin:2%;">
+        <div class="col-sm-4">
+
+            <figure class="figure">
+                <img src="https://static.vecteezy.com/system/resources/previews/028/144/649/original/bunch-of-bananas-cartoon-illustration-banana-fruit-flat-icon-outline-vector.jpg"
+                class="rounded mx-auto d-block" alt="Food Logging" width="304" height="236" @onclick="NavToFoodLogging">
+                <figcaption class="figure-caption">Food Logging</figcaption>
+            </figure>
+
+        </div>
+        <div class="col-sm-4">
+
+            <figure class="figure">
+                <img src="https://st2.depositphotos.com/3557671/11465/v/950/depositphotos_114657618-stock-illustration-treadmill-icon-cartoon-single-sport.jpg"
+                class="rounded mx-auto d-block" alt="Excercise Logging" width="304" height="236">
+                <figcaption class="figure-caption">Excercise Logging</figcaption>
+            </figure>
+
+        </div>
+        <div class="col-sm-4">
+
+            <figure class="figure">
+                <img src="https://tse1.mm.bing.net/th/id/OIP.GpGlhBwR00XUFDA4Xa8p4AHaEc?rs=1&pid=ImgDetMain&o=7&rm=3"
+                class="rounded mx-auto d-block" alt="Graphs" width="304" height="236">
+                <figcaption class="figure-caption">Graphs</figcaption>
+            </figure>
+
+        </div>
+    </div>
+</div>
+
+<hr class="bg-primary border-2 border-top border-primary" />
+
+
+
+<div class="container text-center">
+    <!-- Columns are always 50% wide, on mobile and desktop -->
+    <div class="row">
+        <div class="col-6">
+
+            <figure class="figure">
+                <figcaption class="figure-caption">Daily calorie budget Accumulator</figcaption>
+                <img src="https://tse4.mm.bing.net/th/id/OIP.1aH9UL6FeeKt_9OxxLPVlgAAAA?cb=ucfimg2&ucfimg=1&rs=1&pid=ImgDetMain&o=7&rm=3" 
+                    class="rounded mx-auto d-block" alt="Daily calorie budget Accumulator" width="304" height="236">
+            </figure>
+
+        </div>
+        <div class="col-6">
+
+            <figure class="figure">
+                <figcaption class="figure-caption">Summary statistics</figcaption>
+                <img src="https://th.bing.com/th/id/OIP.OVLcDx4KA-V4q520JuuumAHaFJ?w=258&h=180&c=7&r=0&o=7&cb=ucfimg2&pid=1.7&rm=3&ucfimg=1"
+                    class="rounded mx-auto d-block" alt="Summary statistics" width="304" height="236">
+            </figure>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    private void NavToAccountDetails()
+    {
+        NavigationManager.NavigateTo("accountdetails");
+    }
+
+    private void NavToFoodLogging()
+    {
+        NavigationManager.NavigateTo("foodlogging");
+    }
+}
