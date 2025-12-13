@@ -46,7 +46,7 @@
 
             <figure class="figure">
                 <img src="https://st2.depositphotos.com/3557671/11465/v/950/depositphotos_114657618-stock-illustration-treadmill-icon-cartoon-single-sport.jpg"
-                class="rounded mx-auto d-block" alt="Excercise Logging" width="304" height="236">
+                     class="rounded mx-auto d-block" alt="Excercise Logging" width="304" height="236" @onclick="NavToExerciseLogging">
                 <figcaption class="figure-caption">Excercise Logging</figcaption>
             </figure>
 
@@ -100,5 +100,10 @@
     private void NavToFoodLogging()
     {
         NavigationManager.NavigateTo("foodlogging");
+    }
+
+    private void NavToExerciseLogging()
+    {
+        NavigationManager.NavigateTo("exerciselogging");
     }
 }

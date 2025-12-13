@@ -1,0 +1,89 @@
+﻿@page "/exerciselogging"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+@*Imported from food logging page.*@
+<h3>ExerciseLogging</h3>
+<link rel="stylesheet " href="~/customcsspages/FoodLogging.css" />
+
+
+<p class="blockquote ">Introductory message + explanation of use</p>
+
+        <!-- Textarea column -->
+        <div class="col-sm-10 d-flex">
+            <textarea class="form-control w-100" style="resize:none; min-height:70px;"
+                      placeholder="Search for Exercise from Database"></textarea>
+        </div>
+
+
+<hr />
+<div class="container-fluid">
+    <div class="row d-flex align-items-stretch">
+
+      
+        <div class="col-sm-10 d-flex">
+            <ul class="list-group w-100">
+                <li class="list-group-item">An item</li>
+                <li class="list-group-item">A second item</li>
+                <li class="list-group-item">A third item</li>
+                <li class="list-group-item">A fourth item</li>
+                <li class="list-group-item">And a fifth one</li>
+            </ul>
+        </div>
+
+        
+        <div class="col-sm-2 d-flex flex-column">
+
+            <div class="flex-grow-1 mb-2">
+                <div class="form-control d-flex justify-content-center align-items-center h-100">
+                    Exercise Grade: A
+                </div>
+            </div>
+
+            <div class="flex-grow-3 mb-2">
+                <textarea class="form-control w-100 h-100"
+                          placeholder="Input Exercise Duration"></textarea>
+            </div>
+
+            <div class="flex-grow-1 d-flex">
+                <button type="button" class="btn btn-primary w-100 h-100">
+                    Enter
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+
+
+<label>Manual Entry</label>
+<div class="form-floating textbox">
+    <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
+    <label for="floatingTextarea">Exercise</label>
+</div>
+
+<div class="form-floating textbox">
+    <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
+    <label for="floatingTextarea">Duration</label>
+</div>
+
+<div class="form-floating textbox">
+    <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
+    <label for="floatingTextarea">Calories</label>
+</div>
+
+@*Wraps the enter and the dieting advice button onto the same row using the appropriate
+    bootstrap class.
+*@
+<div class="d-sm-flex justify-content-between">
+    <button type="button" class="btn btn-secondary">Enter</button>
+    <button type="button" class="btn btn-info">Exercise advice</button>
+</div>
+
+
+@code {
+
+}
