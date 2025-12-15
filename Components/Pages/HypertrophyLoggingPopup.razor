@@ -1,0 +1,116 @@
+﻿@page "/hypertrophypopup"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+
+
+@*If the pop up is meant to be displayed, this code block ensures that it will be*@
+
+@if (IsVisible)
+{
+    @* 
+        `fade show d-block` allows the modal to be visible without using javascript
+        `tabindex="-1"` allows focus trapping for accessibility
+        `role="dialog"` identifies this as a dialog for screen readers
+    *@
+    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+
+        @* 
+            Centers the modal vertically on the screen
+        *@
+        <div class="modal-dialog modal-dialog-centered" role="document">
+
+            @* 
+                (header, body, footer)
+            *@
+            <div class="modal-content">
+
+                @* 
+                    Modal header section
+                    Displays the title and a close button.
+                *@
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+
+                    @* 
+                        Close button.
+                        Calls the Close() method which hides the modal
+                        by notifying the parent component
+                    *@
+                    <button type="button"
+                            class="btn-close"
+                            @onclick="Close">
+                    </button>
+                </div>
+
+                @* 
+                    Modal body
+                    Renders any content passed in from the parent component
+                    using RenderFragment (ChildContent) which has been done
+                    to ensure reusability of this procedure
+                *@
+                <div class="modal-body">
+                    @ChildContent
+                </div>
+
+                @* 
+                    Modal footer.
+                    Contains actions related to the modal such as close
+                *@
+                <div class="modal-footer">
+                    <button class="btn btn-secondary"
+                            @onclick="Close">
+                        Close
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @* 
+        Modal backdrop that Creates the dark overlay behind the popup
+        This is only needed because im not using javascript
+    *@
+    <div class="modal-backdrop fade show"></div>
+}
+
+
+@code {
+
+
+    @*Declares a component parameter that will allow the parent page to have control over whether
+    the pop up is shown*@
+
+    [Parameter] public bool IsVisible { get; set; }
+
+
+    @*Binds the property "IsVisible" to the callback "IsVisibleChanged"
+    This allows the pop up to communicate to the parent page when visibility changes*@
+
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+
+
+    @*Assigns a name to the modal, a default value*@
+
+    [Parameter] public string Title { get; set; } = "HypertrophyLoggingPopup";
+
+
+    @*Allows the pop up to accept arbitrary mark up from parent
+        Makes the modal reusable for any content*@
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+
+    @*The method that is called when the user clicks close.
+        It should call "IsVisibleChanged", pass false so that parent receives change and updates
+        its showPopup variable allowing the modal to disappear
+    *@
+
+    private async Task Close()
+    {
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+
+
+}

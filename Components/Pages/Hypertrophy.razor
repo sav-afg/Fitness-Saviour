@@ -2,7 +2,16 @@
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 
-@*Imported from Exercise logging page.*@
+@* PSEUDOCODE / PLAN:
+   - Ensure the numeric accumulators (sets, reps, weight, rpe, rir) never become negative.
+   - Replace plain text value attributes with numeric inputs bound to the backing fields so UI reflects model.
+   - For each decrement method: only decrement when current value > 0.
+   - For safety, clamp values on any set operations (use Math.Max for ints; for uint ensure non-negative via checks).
+   - Disable the decrement button in the UI when value is zero to give visual affordance.
+   - Keep increment operations as simple increments.
+   - Maintain existing UI layout and minimal changes to behavior.
+*@
+
 <h3>Hypertrophy</h3>
 <link rel="stylesheet " href="~/customcsspages/FoodLogging.css" />
 
@@ -52,7 +61,7 @@
 
 
             <div class="flex-grow-2 d-flex">
-                <button type="button" class="btn btn-primary w-100 h-100">
+                <button type="button" class="btn btn-primary w-100 h-100" @onclick="OpenPopup">
                     Log
                 </button>
             </div>
@@ -72,10 +81,98 @@
 
 
 
+<HypertrophyLoggingPopup @bind-IsVisible="showPopup" Title="Hypertrophy Logging Page">
+    <p >Name of Exercise</p>
+    @*Need to implement a toggle system*@
 
-@*Wraps the enter and the dieting advice button onto the same row using the appropriate
-    bootstrap class.
-*@
+
+
+    <div class="container">
+
+        @*Sets*@
+        <div class="row align-items-center mb-3">
+            <div class="col-4 text-end">
+                <label class="form-label mb-0">Sets</label>
+            </div>
+            <div class="col-8">
+                <div class="input-group" style="max-width: 160px;">
+                    @*Minus button*@
+                    <button class="btn btn-outline-secondary" @onclick="DecrementSet" disabled="@(setAccumulator == 0)">−</button>
+
+                    @*Numeric bound input*@
+                    <input type="number" class="form-control text-center" @bind="setAccumulator" min="0" />
+
+                    @*Plus button*@
+                    <button class="btn btn-outline-secondary" @onclick="IncrementSet">+</button>
+                </div>
+            </div>
+        </div>
+
+        @*Reps*@
+        <div class="row align-items-center mb-3">
+            <div class="col-4 text-end">
+                <label class="form-label mb-0">Reps</label>
+            </div>
+            <div class="col-8">
+                <div class="input-group" style="max-width: 160px;">
+                    <button class="btn btn-outline-secondary" @onclick="DecrementRep" disabled="@(repAccumulator == 0)">−</button>
+                    <input type="number" class="form-control text-center" @bind="repAccumulator" min="0" />
+                    <button class="btn btn-outline-secondary" @onclick="IncrementRep">+</button>
+                </div>
+            </div>
+        </div>
+
+        @*Weight*@
+        <div class="row align-items-center mb-3">
+            <div class="col-4 text-end">
+                <label class="form-label mb-0">Weight</label>
+            </div>
+            <div class="col-8">
+                <div class="input-group" style="max-width: 160px;">
+                    <button class="btn btn-outline-secondary" @onclick="DecrementWeight" disabled="@(weightAccumulator == 0)">−</button>
+                    <input type="number" class="form-control text-center" @bind="weightAccumulator" min="0" />
+                    <button class="btn btn-outline-secondary" @onclick="IncrementWeight">+</button>
+                </div>
+            </div>
+        </div>
+
+        @*RPE*@
+        <div class="row align-items-center mb-3">
+            <div class="col-4 text-end">
+                <label class="form-label mb-0">RPE</label>
+            </div>
+            <div class="col-8">
+                <div class="input-group" style="max-width: 160px;">
+                    <button class="btn btn-outline-secondary" @onclick="Decrementrpe" disabled="@(rpeAccumulator == 0)">−</button>
+                    <input type="number" class="form-control text-center" @bind="rpeAccumulator" min="0" />
+                    <button class="btn btn-outline-secondary" @onclick="Incrementrpe" disabled="@(rpeAccumulator == 10)">+</button>
+                </div>
+            </div>
+        </div>
+
+        @*RIR*@
+        <div class="row align-items-center">
+            <div class="col-4 text-end">
+                <label class="form-label mb-0">RIR</label>
+            </div>
+            <div class="col-8">
+                <div class="input-group" style="max-width: 160px;">
+                    <button class="btn btn-outline-secondary" @onclick="Decrementrir" disabled="@(rirAccumulator == 0)">−</button>
+                    <input type="number" class="form-control text-center" @bind="rirAccumulator" min="0" />
+                    <button class="btn btn-outline-secondary" @onclick="Incrementrir" disabled="@(rirAccumulator == 10)">+</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="d-sm-flex justify-content-between">
+        <button type="button" class="btn btn-primary">Log</button>
+        <button type="button" class="btn btn-primary">Graphs</button>
+    </div>
+
+</HypertrophyLoggingPopup>
+
 <div class="d-sm-flex justify-content-between">
     <div class="dropdown-center">
         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -87,18 +184,86 @@
             <li><a class="dropdown-item" href="#">Speed and Time</a></li>
         </ul>
     </div>
-    <button type="button" class="btn btn-secondary">Log</button>
+    <button type="button" class="btn btn-secondary" @onclick="OpenPopup">Log</button>
     <button type="button" class="btn btn-info">Generate a Workout Split</button>
 </div>
-
 
 @code {
 
     private void NavToHypertrophy()
+        => NavigationManager.NavigateTo("hypertrophy");
+
+    private bool showPopup;
+
+    private void OpenPopup()
+        => showPopup = true;
+
+    // Sets: using uint (non-negative by type). Guard decrement to avoid underflow.
+    private byte setAccumulator = 0;
+    private void IncrementSet() => setAccumulator++;
+    private void DecrementSet()
     {
-        NavigationManager.NavigateTo("hypertrophy");
+        if (setAccumulator > 0)
+        {
+            setAccumulator--;
+        }
     }
 
+    // Reps
+    private byte repAccumulator = 0;
+    private void IncrementRep() => repAccumulator++;
+    private void DecrementRep()
+    {
+        if (repAccumulator > 0)
+        {
+            repAccumulator--;
+        }
+    }
+
+    // Weight
+    private float weightAccumulator = 0f;
+    private void IncrementWeight() => weightAccumulator++;
+    private void DecrementWeight()
+    {
+        if (weightAccumulator > 0)
+        {
+            weightAccumulator--;
+        }
+    }
+
+    // RPE
+    private byte rpeAccumulator = 0;
+    private void Incrementrpe()
+    {
+        if (rpeAccumulator < 10)
+        {
+            rpeAccumulator++;
+        }
+    }
+    private void Decrementrpe()
+    {
+        if (rpeAccumulator > 0)
+        {
+            rpeAccumulator--;
+        }
+    }
+
+    // RIR
+    private byte rirAccumulator = 0;
+    private void Incrementrir()
+    {
+        if (rirAccumulator < 10)
+        {
+            rirAccumulator++;
+        }
+    }
+    private void Decrementrir()
+    {
+        if (rirAccumulator > 0)
+        {
+            rirAccumulator--;
+        }
+    }
 
 }
 
