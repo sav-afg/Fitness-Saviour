@@ -2,10 +2,114 @@
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 
+@*Title*@
+<h3>Personalise Your Experience</h3>
 
-<h3>UiPersonalisation</h3>
-<p>Needs implementing</p>
+@*Explanation of function of the page*@
+<p>
+    Answer the questions below to customise how the website looks and behaves.
+    These settings can be changed at any time.
+</p>
+
+<hr />
+
+ @*EXPERIENCE LEVEL QUESTION*@
+<label><strong>1. How experienced are you with fitness?</strong></label>
+<select class="form-select">
+    <option value="Beginner">Beginner</option>
+    <option value="Intermediate">Intermediate</option>
+    <option value="Advanced">Advanced</option>
+</select>
+
+<br />
+
+@*  PRIMARY GOAL QUESTION *@
+<label><strong>2. What is your primary fitness goal?</strong></label>
+<select class="form-select">
+    <option value="FatLoss">Fat Loss</option>
+    <option value="MuscleGain">Muscle Gain</option>
+    <option value="Endurance">Endurance</option>
+    <option value="General">General Health</option>
+</select>
+
+<br />
+
+<hr />
+@* ACCESSIBILITY OPTIONS *@
+<label><strong>3. Accessibility Preferences</strong></label>
+<div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+    <input type="checkbox" class="btn-check" id="3btncheck1" autocomplete="off">
+    <label class="btn btn-outline-primary" for="3btncheck1">Enable High Contrast Mode</label>
+
+    <input type="checkbox" class="btn-check" id="3btncheck2" autocomplete="off">
+    <label class="btn btn-outline-primary" for="3btncheck2">Enable Dyslexia-Friendly Font</label>
+
+    <input type="checkbox" class="btn-check" id="3btncheck3" autocomplete="off">
+    <label class="btn btn-outline-primary" for="3btncheck3">Reduce Animations</label>
+
+    <input type="checkbox" class="btn-check" id="3btncheck4" autocomplete="off">
+    <label class="btn btn-outline-primary" for="3btncheck4">Larger text size</label>
+</div>
+<br />
+<br />
+
+ @* TRACKING*@
+<label><strong>4. What do you want to track?</strong></label>
+<div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+    <input type="checkbox" class="btn-check" id="4btncheck1" autocomplete="off">
+    <label class="btn btn-outline-primary" for="4btncheck1">Calories only</label>
+
+    <input type="checkbox" class="btn-check" id="4btncheck2" autocomplete="off">
+    <label class="btn btn-outline-primary" for="4btncheck2">Macros (protein/carbohydrate/fat)</label>
+
+    <input type="checkbox" class="btn-check" id="4btncheck3" autocomplete="off">
+    <label class="btn btn-outline-primary" for="4btncheck3">Exercise only</label>
+
+    <input type="checkbox" class="btn-check" id="4btncheck4" autocomplete="off">
+    <label class="btn btn-outline-primary" for="4btncheck4">Weight trends</label>
+
+    <input type="checkbox" class="btn-check" id="4btncheck5" autocomplete="off">
+    <label class="btn btn-outline-primary" for="4btncheck5">Show advanced metrics (RPE / RIR / Macros)</label>
+</div>
+
+<br />
+<br />
+
+@* Motivation *@
+<label><strong>5. What motivates you the most?</strong></label>
+<br />
+<div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+    <input type="checkbox" class="btn-check" id="5btncheck1" autocomplete="off">
+    <label class="btn btn-outline-primary" for="5btncheck1">Visual rewards</label>
+
+    <input type="checkbox" class="btn-check" id="5btncheck2" autocomplete="off">
+    <label class="btn btn-outline-primary" for="5btncheck2">Progress data</label>
+
+    <input type="checkbox" class="btn-check" id="5btncheck3" autocomplete="off">
+    <label class="btn btn-outline-primary" for="5btncheck3">Minimal interface</label>
+</div>
+
+
+<hr />
+
+<button class="btn btn-primary" @onclick="ApplySettings">
+    Apply Settings
+</button>
+
+<br />
+<br />
+
+<p class="text-success">@confirmationMessage</p>
 
 @code {
 
+    // Message shown to the user once settings are applied
+    private string confirmationMessage = "";
+
+    // Called when user clicks "Apply Settings"
+    private void ApplySettings()
+    {
+        confirmationMessage = "Your preferences have been saved and applied.";
+    }
 }
+

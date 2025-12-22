@@ -9,7 +9,7 @@
     <div class="row" style="margin:2%;">
         <div class="col-sm-6">
             @* <p>UI personalisation</p> *@
-            <button type="button" class="btn btn-primary">
+            <button type="button" class="btn btn-primary" @onclick="NavToUIPersonalisation">
                 UI personalisation
             </button>
         </div>
@@ -105,5 +105,10 @@
     private void NavToExerciseLogging()
     {
         NavigationManager.NavigateTo("exerciselogging");
+    }
+
+    private void NavToUIPersonalisation()
+    {
+        NavigationManager.NavigateTo("uipersonalisation");
     }
 }
