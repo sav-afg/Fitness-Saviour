@@ -1,0 +1,240 @@
+﻿@page "/exerciseresults"
+@using WebsiteFirstDraft.Data.Models
+@rendermode InteractiveServer
+@inject ExerciseQuestionnaireState ExerciseState
+
+<div class="container mt-5">
+
+    @* PAGE TITLE *@
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Your Personalised Exercise Recommendations</h2>
+        <p class="text-muted">
+            The exercise types below are ranked from most to least suitable based on your answers.
+        </p>
+    </div>
+
+    @* EXERCISE LIST *@
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            @foreach (var exercise in GradedExercises)
+            {
+                <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+
+                    @* EXERCISE NAME WITH HOVER *@
+                    <span class="fw-semibold"
+                          data-bs-toggle="tooltip"
+                          title="@exercise.Description">
+                        @exercise.Name
+                    </span>
+
+                    @if (IsInfoDisplayed)
+                    {
+                        <span class="link-info">
+                            <a href="@exercise.Link">@exercise.Link</a>
+                        </span>
+                    }
+
+                    @* GRADE *@
+                    <span class="@exercise.ColourClass">
+                        @exercise.Grade
+                    </span>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<br />
+
+<div class="d-sm-flex justify-content-around">
+    <button class="btn btn-success" @onclick="ShowInfo">Add Links</button>
+    <button class="btn btn-danger" @onclick="HideInfo">Remove Links</button>
+</div>
+
+@code {
+
+    // Model representing an exercise form
+    private class ExerciseForm
+    {
+        public string Name { get; set; } = "";
+        public int Score { get; set; }
+        public string Grade { get; set; } = "";
+        public string Description { get; set; } = "";
+
+        public string BestGoal { get; set; } = "";
+        public string Difficulty { get; set; } = "";
+        public string Intensity { get; set; } = "";
+        public string Environment { get; set; } = "";
+
+        public bool HighImpact { get; set; }
+        public bool SpinalLoad { get; set; }
+        public bool HighCardioDemand { get; set; }
+
+        public string ColourClass { get; set; } = "";
+        public string Link { get; set; } = "";
+    }
+
+    private List<ExerciseForm> GradedExercises = new();
+
+    protected override void OnInitialized() => GenerateGradedExerciseList();
+
+    // List of generic exercise forms
+    private List<ExerciseForm> GetAllExerciseForms()
+    {
+        return new List<ExerciseForm>
+        {
+            new ExerciseForm
+            {
+                Name = "Compound Resistance Training",
+                Description = "Multi-joint resistance movements that build strength and muscle.",
+                BestGoal = "Muscle gain",
+                Difficulty = "Intermediate",
+                Intensity = "High",
+                Environment = "Gym",
+                SpinalLoad = true,
+                Link = "https://en.wikipedia.org/wiki/Strength_training"
+            },
+            new ExerciseForm
+            {
+                Name = "Bodyweight Training",
+                Description = "Exercises using body mass for resistance.",
+                BestGoal = "General health",
+                Difficulty = "Beginner",
+                Intensity = "Moderate",
+                Environment = "Home / Outdoors",
+                Link = "https://en.wikipedia.org/wiki/Calisthenics"
+            },
+            new ExerciseForm
+            {
+                Name = "Steady-State Cardio",
+                Description = "Continuous cardiovascular activity at a moderate pace.",
+                BestGoal = "Fat loss",
+                Difficulty = "Beginner",
+                Intensity = "Low",
+                Environment = "Gym / Outdoors",
+                HighCardioDemand = true,
+                Link = "https://en.wikipedia.org/wiki/Aerobic_exercise"
+            },
+            new ExerciseForm
+            {
+                Name = "High-Intensity Interval Training",
+                Description = "Short bursts of intense exercise followed by rest.",
+                BestGoal = "Fat loss",
+                Difficulty = "Advanced",
+                Intensity = "High",
+                Environment = "Gym / Home",
+                HighImpact = true,
+                HighCardioDemand = true,
+                Link = "https://en.wikipedia.org/wiki/High-intensity_interval_training"
+            },
+            new ExerciseForm
+            {
+                Name = "Mobility and Flexibility Training",
+                Description = "Exercises focused on joint health and movement quality.",
+                BestGoal = "General health",
+                Difficulty = "Beginner",
+                Intensity = "Low",
+                Environment = "Anywhere",
+                Link = "https://en.wikipedia.org/wiki/Functional_training"
+            },
+            new ExerciseForm
+            {
+                Name = "Low-Impact Cardio",
+                Description = "Cardio exercises that minimise joint stress.",
+                BestGoal = "Fat loss",
+                Difficulty = "Beginner",
+                Intensity = "Low",
+                Environment = "Gym / Home",
+                HighCardioDemand = false,
+                Link = "https://en.wikipedia.org/wiki/Cardiovascular_fitness"
+            },
+            new ExerciseForm
+            {
+                Name = "Plyometric Training",
+                Description = "Explosive movements to develop power.",
+                BestGoal = "Muscle gain",
+                Difficulty = "Advanced",
+                Intensity = "High",
+                Environment = "Gym",
+                HighImpact = true,
+                Link = "https://en.wikipedia.org/wiki/Plyometrics"
+            }
+        };
+    }
+
+    private void GenerateGradedExerciseList()
+    {
+        var exercises = GetAllExerciseForms();
+
+        foreach (var exercise in exercises)
+        {
+            exercise.Score = 2;
+
+            // Goal matching (primary factor)
+            if (exercise.BestGoal == ExerciseState.FitnessGoal)
+                exercise.Score += 15;
+
+            // Experience vs difficulty
+            if (exercise.Difficulty == ExerciseState.ExperienceLevel)
+                exercise.Score += 4;
+
+            if (ExerciseState.ExperienceLevel == "Beginner" && exercise.Difficulty == "Advanced")
+                exercise.Score -= 4;
+
+            // Intensity preference
+            if (exercise.Intensity == ExerciseState.Intensity)
+                exercise.Score += 4;
+
+            // Location compatibility
+            if (exercise.Environment.Contains(ExerciseState.LocationPreference))
+                exercise.Score += 4;
+
+            // Injury-based deductions
+            if (ExerciseState.JointPain && exercise.HighImpact)
+                exercise.Score -= 5;
+
+            if (ExerciseState.BackIssues && exercise.SpinalLoad)
+                exercise.Score -= 5;
+
+            if (ExerciseState.CardioLimitations && exercise.HighCardioDemand)
+                exercise.Score -= 5;
+
+            // Frequency suitability
+            if (ExerciseState.FrequencyPerWeekValue <= 2 && exercise.Intensity == "High")
+                exercise.Score -= 2;
+        }
+
+        GradedExercises = exercises
+            .OrderByDescending(e => e.Score)
+            .ToList();
+
+        foreach (var exercise in GradedExercises)
+        {
+            exercise.Grade = exercise.Score switch
+            {
+                >= 8 => "A",
+                >= 5 => "B",
+                >= 2 => "C",
+                >= 0 => "D",
+                _ => "E"
+            };
+
+            exercise.ColourClass = exercise.Score switch
+            {
+                >= 8 => "badge bg-success fs-6",
+                >= 5 => "badge bg-success fs-6",
+                >= 2 => "badge bg-warning fs-6",
+                >= 0 => "badge bg-warning fs-6",
+                _ => "badge bg-danger fs-6"
+            };
+        }
+    }
+
+    private bool IsInfoDisplayed;
+
+    private void ShowInfo() => IsInfoDisplayed = true;
+    private void HideInfo() => IsInfoDisplayed = false;
+}
+

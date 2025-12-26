@@ -1,0 +1,301 @@
+﻿@page "/dietresults"
+@using WebsiteFirstDraft.Data.Models
+@rendermode InteractiveServer
+@inject DietQuestionnaireState DietState
+
+<div class="container mt-5">
+
+    @* PAGE TITLE *@ 
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Your Personalised Diet Recommendations</h2>
+        <p class="text-muted">
+            The diets below are ranked from most to least suitable based on your answers.
+        </p>
+    </div>
+
+     @* DIET LIST  *@
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            @foreach (var diet in GradedDiets)
+            {
+                <div class="d-flex justify-content-between align-items-center
+                                border-bottom py-3">
+
+                    @* DIET NAME WITH HOVER  *@
+                    <span class="fw-semibold"
+                          data-bs-toggle="tooltip"
+                          title="@diet.Description">
+                        @diet.Name
+                    </span>
+
+
+                @if(IsLinksDisplayed) {
+
+                    @*DIET LINK*@
+                    <span class="link-info">
+                            <a href="@diet.Link">@diet.Link</a>
+                    </span>
+                }
+
+                    @* GRADE *@ 
+                    <span class="@diet.ColourClass">
+                        @diet.Grade
+                    </span>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<br />
+
+<div class="d-sm-flex justify-content-around">
+
+    @*Buttons will either add or remove the links by calling the appropriate method*@
+    <button type="button" class="btn btn-success" @onclick="DisplayLinks">Add Diet Links</button>
+    <button type="button" class="btn btn-danger" @onclick="RemoveLinks">Remove Diet Links</button>
+</div>
+
+
+@code {
+
+    // Model representing a diet
+    private class Diet
+    {
+        public string Name { get; set; } = "";
+        public int Score { get; set; }
+        public string Grade { get; set; } = "";
+        public string Description { get; set; } = "";
+
+        public bool IsVegetarian { get; set; }
+        public bool IsVegan { get; set; }
+        public bool IsHalal { get; set; }
+
+        public string BestGoal { get; set; } = "";
+        public bool IsStrict { get; set; }
+        public byte TypicalMealsPerDay { get; set; }
+        public string Difficulty { get; set; } = "";
+
+        public string Link { get; set; } = "";
+        public string ColourClass { get; set; } = "";
+    }
+
+
+    // Final graded list
+    private List<Diet> GradedDiets = new();
+
+    protected override void OnInitialized() => GenerateGradedDietList();
+    
+
+
+    //This method returns a list that contains 10 popular diets that have a variety of use cases.
+    private List<Diet> GetAllDiets()
+    {
+        return new List<Diet>
+    {
+        new Diet
+        {
+            Name = "Mediterranean Diet",
+            Description = "Balanced diet rich in healthy fats, vegetables, and lean protein.",
+            BestGoal = "General health",
+            IsVegetarian = true,
+            IsVegan = false,
+            IsHalal = true,
+            IsStrict = false,
+            TypicalMealsPerDay = 3,
+            Difficulty = "Beginner",
+            Link="https://www.healthline.com/nutrition/mediterranean-diet-meal-plan"
+        },
+        new Diet
+        {
+            Name = "High Protein Diet",
+            Description = "High protein intake to support muscle growth and satiety.",
+            BestGoal = "Muscle gain",
+            IsHalal = true,
+            IsStrict = false,
+            TypicalMealsPerDay = 4,
+            Difficulty = "Intermediate",
+            Link="https://www.healthline.com/nutrition/high-protein-diet-benefits"
+        },
+        new Diet
+        {
+            Name = "Low Carb Diet",
+            Description = "Reduced carbohydrate intake to promote fat loss.",
+            BestGoal = "Fat loss",
+            IsStrict = true,
+            TypicalMealsPerDay = 3,
+            Difficulty = "Intermediate",
+            Link="https://www.healthline.com/nutrition/low-carb-diet-benefits"
+        },
+        new Diet
+        {
+            Name = "Ketogenic Diet",
+            Description = "Very low carbohydrate, high fat diet.",
+            BestGoal = "Fat loss",
+            IsStrict = true,
+            TypicalMealsPerDay = 2,
+            Difficulty = "Advanced",
+            Link="https://www.healthline.com/nutrition/ketogenic-diet-101"
+        },
+        new Diet
+        {
+            Name = "Intermittent Fasting",
+            Description = "Time-restricted eating pattern.",
+            BestGoal = "Fat loss",
+            IsStrict = true,
+            TypicalMealsPerDay = 2,
+            Difficulty = "Intermediate",
+            Link="https://www.healthline.com/nutrition/intermittent-fasting-guide"
+        },
+        new Diet
+        {
+            Name = "Vegan Whole Foods",
+            Description = "Plant-based diet focusing on unprocessed foods.",
+            BestGoal = "General health",
+            IsVegan = true,
+            IsVegetarian = true,
+            IsHalal = true,
+            IsStrict = true,
+            TypicalMealsPerDay = 3,
+            Difficulty = "Intermediate",
+            Link="https://www.healthline.com/nutrition/vegan-diet-guide"
+        },
+        new Diet
+        {
+            Name = "Vegetarian Balanced",
+            Description = "Balanced vegetarian diet with adequate protein.",
+            BestGoal = "General health",
+            IsVegetarian = true,
+            IsHalal = true,
+            IsStrict = false,
+            TypicalMealsPerDay = 3,
+            Difficulty = "Beginner",
+            Link="https://www.healthline.com/nutrition/vegetarian-diet-benefits"
+        },
+        new Diet
+        {
+            Name = "Paleo Diet",
+            Description = "Whole foods diet excluding processed foods and grains.",
+            BestGoal = "Fat loss",
+            IsStrict = true,
+            TypicalMealsPerDay = 3,
+            Difficulty = "Advanced",
+            Link="https://www.healthline.com/nutrition/paleo-diet-101"
+        },
+        new Diet
+        {
+            Name = "DASH Diet",
+            Description = "Diet designed to reduce blood pressure and improve health.",
+            BestGoal = "General health",
+            IsHalal = true,
+            IsStrict = false,
+            TypicalMealsPerDay = 3,
+            Difficulty = "Beginner",
+            Link="https://www.healthline.com/nutrition/dash-diet"
+        },
+        new Diet
+        {
+            Name = "Flexible IIFYM",
+            Description = "Flexible dieting focused on calorie and macro targets.",
+            BestGoal = "Muscle gain",
+            IsHalal = true,
+            IsStrict = false,
+            TypicalMealsPerDay = 4,
+            Difficulty = "Advanced",
+            Link="https://www.healthline.com/nutrition/iifym-diet"
+        }
+    };
+    }
+
+
+    private void GenerateGradedDietList()
+    {
+        //Creating a new list
+        var diets = GetAllDiets();
+
+        @*Scoring Logic*@
+        foreach (var diet in diets)
+        {
+            diet.Score = 0;
+
+            // Goal matching (biggest value change as this is the most important match of the algorithm)
+            if (diet.BestGoal == DietState.PrimaryGoal)
+                diet.Score += 10;
+
+            // Dietary restrictions
+            if (DietState.Vegan && !diet.IsVegan)
+                diet.Score -= 4;
+
+            if (DietState.Vegetarian && !diet.IsVegetarian)
+                diet.Score -= 4;
+
+            if (DietState.Halal && !diet.IsHalal)
+                diet.Score -= 4;
+
+            // Meal frequency compatibility, finds difference between them
+            if (Math.Abs(diet.TypicalMealsPerDay - DietState.MealNumber) <= 1)
+                diet.Score += 2;
+            else
+                diet.Score -= 1;
+
+            // Structure preference
+            if (DietState.StructurePreference == "Strict" && diet.IsStrict)
+                diet.Score += 2;
+
+            if (DietState.StructurePreference == "Flexible" && !diet.IsStrict)
+                diet.Score += 2;
+
+            // Experience level vs difficulty
+            if (DietState.ExperienceLevel == diet.Difficulty)
+                diet.Score += 2;
+
+            //Strong deduction if the diet is too difficult
+            if (DietState.ExperienceLevel == "Beginner" && diet.Difficulty == "Advanced")
+                diet.Score -= 3;
+
+            //Smaller deduction if the opposite
+            if (DietState.ExperienceLevel == "Advanced" && diet.Difficulty == "Beginner")
+                diet.Score -= 1;
+        }
+
+        // Sort by score descending
+        GradedDiets = diets
+            .OrderByDescending(d => d.Score)
+            .ToList();
+
+        // Convert score to grade
+        foreach (var diet in GradedDiets)
+        {
+            diet.Grade = diet.Score switch
+            {
+                >= 8 => "A", 
+                >= 5 => "B",
+                >= 2 => "C",
+                >= 0 => "D",
+                _ => "E"
+            };
+
+            diet.ColourClass = diet.Score switch
+            {
+                >= 8 => "badge bg-success fs-6",
+                >= 5 => "badge bg-success fs-6",
+                >= 2 => "badge bg-warning fs-6",
+                >= 0 => "badge bg-warning fs-6",
+                _ => "badge bg-danger fs-6"
+            };
+        }
+    }
+
+    @*Boolean value that will be true when the links are displayed and false when they aren’t.*@
+    private bool IsLinksDisplayed;
+
+
+
+    private void DisplayLinks() => IsLinksDisplayed = true;
+
+    private void RemoveLinks() => IsLinksDisplayed = false;
+    
+}
+

@@ -88,9 +88,13 @@
 *@
 <div class="d-sm-flex justify-content-between">
 <button type="button" class="btn btn-secondary">Enter</button>
-<button type="button" class="btn btn-info">Dieting advice</button>
+    <button type="button" class="btn btn-info" @onclick="NavToDietQuestionnaire">Dieting advice</button>
 </div>
 
 @code {
 
+    private void NavToDietQuestionnaire()
+    {
+        NavigationManager.NavigateTo("dietquestionnaire");
+    }
 }

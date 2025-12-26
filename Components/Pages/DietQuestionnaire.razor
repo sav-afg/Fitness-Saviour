@@ -1,0 +1,202 @@
+﻿@page "/dietquestionnaire"
+@using WebsiteFirstDraft.Data.Models
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+@inject DietQuestionnaireState DietState
+
+
+@* Adding the namespace for the AspNetCore form component *@
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="container mt-5">
+
+    @* PAGE TITLE *@
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Diet Recommendation Questionnaire</h2>
+        <p class="text-muted">
+            Answer the questions below to generate a personalised, graded list
+            of diets suited to your goals and preferences.
+        </p>
+    </div>
+
+   @*  QUESTIONNAIRE CARD *@
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            @* QUESTION 1 *@
+            <div class="mb-4">
+                <label class="form-label" @bind="PrimaryGoal"><strong>
+                    What is your primary dietary goal?
+                </strong></label>
+                <select class="form-select" @bind="PrimaryGoal">
+                    <option disabled value="">Select an option</option>
+                    <option>Fat loss</option>
+                    <option>Muscle gain</option>
+                    <option>General health</option>
+                    <option>Athletic performance</option>
+                </select>
+            </div>
+
+            @*  QUESTION 2 *@
+
+            <label class="form-label"><strong>Do you have any dietary restrictions?</strong></label>
+            <br />
+            <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                <input @bind="Vegetarian" type="checkbox" class="btn-check" id="Vegetarian" autocomplete="off">
+                <label class="btn btn-outline-primary" for="Vegetarian">Vegetarian</label>
+
+                <input @bind="Vegan" type="checkbox" class="btn-check" id="Vegan" autocomplete="off">
+                <label class="btn btn-outline-primary" for="Vegan">Vegan</label>
+
+                <input @bind="Halal" type="checkbox" class="btn-check" id="Halal" autocomplete="off">
+                <label class="btn btn-outline-primary" for="Halal">Halal</label>
+            </div>
+
+            <br />
+            <br />
+
+
+           @*  QUESTION 3  *@
+            @* Using InputRadioGroup component which allows the user to select an option from a predefined set of choices in a list of radio buttons *@
+
+            <label><strong>How structured do you want your diet to be?</strong> </label>
+            <InputRadioGroup @bind-Value="StructurePreference">
+                <div class="form-check">
+                    <InputRadio class="form-check-input " id="Flexible" Value="@DietStructure.Flexible" />
+                    <label class="form-check-label" for="Flexible">Flexible</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="Moderatelystructured" Value="@DietStructure.ModeratelyStructured" />
+                    <label class="form-check-label" for="Moderatelystructured">Moderately structured</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="Strict" Value="@DietStructure.Strict" />
+                    <label class="form-check-label" for="Strict">Strict</label>
+                </div>
+            </InputRadioGroup>
+            <br />
+
+            @*QUESTION 5*@
+            <label><strong>How many meals per day do you prefer? </strong> </label>
+            <InputRadioGroup @bind-Value="Mealnumber">
+                <div class="form-check">
+                    <InputRadio class="form-check-input " id="2" Value="@MealNumber.Two" />
+                    <label class="form-check-label" for="2">2</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="3" Value="@MealNumber.Three" />
+                    <label class="form-check-label" for="3">3</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="4" Value="@MealNumber.Four" />
+                    <label class="form-check-label" for="4">4</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="5" Value="@MealNumber.Five" />
+                    <label class="form-check-label" for="5">5</label>
+                </div>
+            </InputRadioGroup>
+
+            <br />
+
+
+             @* QUESTION 4  *@
+            <div class="mb-4">
+                <label class="form-label"><strong>
+                    What is your experience level with dieting?
+                </strong></label>
+                <select class="form-select" @bind="ExperienceLevel">
+                    <option disabled value="">Select an option</option>
+                    <option>Beginner</option>
+                    <option>Intermediate</option>
+                    <option>Advanced</option>
+                </select>
+            </div>
+
+            @* SUBMIT BUTTON *@
+            <div class="text-center">
+                <button class="btn btn-success btn-lg @(IsFormIncomplete ? "disabled" : "")"
+                        @onclick="GenerateDietList"
+                        disabled="@IsFormIncomplete"
+                        aria-disabled="@(IsFormIncomplete.ToString().ToLower())">
+                    Generate Diet List
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* <p>Primary goal: @PrimaryGoal</p>
+<p>Vegetarian: @Vegetarian, Vegan: @Vegan, Halal: @Halal</p>
+<p>StructurePreference: @StructurePreference</p>
+<p>ExperienceLevel: @ExperienceLevel</p>
+<p>MealNumber: @MealNumber</p>
+ *@
+@code {
+
+    // User answers (stored temporarily, later passed to algorithm)
+    private string PrimaryGoal = "";
+
+    // private string StructurePreference = "";
+    // Use a nullable enum for the radio group so Blazor can bind enum values properly and detect "unselected"
+    private DietStructure? StructurePreference = null;
+    private MealNumber? Mealnumber = null;
+
+    private string ExperienceLevel = "";
+
+
+    private bool Vegetarian;
+    private bool Vegan;
+    private bool Halal;
+
+    // Simple validation to ensure required fields are answered
+    private bool IsFormIncomplete =>
+        String.IsNullOrEmpty(PrimaryGoal) ||
+
+        // String.IsNullOrEmpty(StructurePreference) ||
+        StructurePreference == null ||
+
+        String.IsNullOrEmpty(ExperienceLevel) ||
+        Mealnumber == null;
+
+    private void GenerateDietList()
+    {
+        // Guard to ensure we don't navigate when form is incomplete
+        if (IsFormIncomplete)
+        {
+            return;
+        }
+        DietState.PrimaryGoal = PrimaryGoal;
+        DietState.Vegetarian = Vegetarian;
+        DietState.Vegan = Vegan;
+        DietState.Halal = Halal;
+        DietState.ExperienceLevel = ExperienceLevel;
+        DietState.MealNumber = (byte) Mealnumber;
+        DietState.StructurePreference = StructurePreference.ToString();
+
+        Navigation.NavigateTo("dietresults");
+    }
+
+    private void ClosePopup()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    //Creating a special class, enum (enumeration) to represent these groups of constants
+    private enum DietStructure
+    {
+        Flexible,
+        ModeratelyStructured,
+        Strict
+    }
+
+    private enum MealNumber
+    {
+        Two = 2,
+        Three,
+        Four,
+        Five
+    }
+}
+

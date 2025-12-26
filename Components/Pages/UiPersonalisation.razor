@@ -1,6 +1,18 @@
-﻿@page "/uipersonalisation"
+﻿@page "/UiPersonalisation"
+@using WebsiteFirstDraft.Data.Models
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
+@inject UISettingsService UIService
+
+@* Pseudocode:
+   - When user clicks "Apply Settings":
+     1. Set `confirmationMessage` to the success text so it appears immediately.
+     2. Call `StateHasChanged()` to ensure the UI updates right away.
+     3. Await 1000ms (1 second) so the message remains visible.
+     4. Clear `confirmationMessage` so it disappears.
+     5. Navigate to the current URI with forceLoad=true to apply settings (optional reload).
+   - Use `async Task` for the event handler instead of `async void`.
+*@
 
 @*Title*@
 <h3>Personalise Your Experience</h3>
@@ -15,7 +27,7 @@
 
  @*EXPERIENCE LEVEL QUESTION*@
 <label><strong>1. How experienced are you with fitness?</strong></label>
-<select class="form-select">
+<select @bind="UIService.Settings.ExperienceLevel" class="form-select">
     <option value="Beginner">Beginner</option>
     <option value="Intermediate">Intermediate</option>
     <option value="Advanced">Advanced</option>
@@ -25,7 +37,7 @@
 
 @*  PRIMARY GOAL QUESTION *@
 <label><strong>2. What is your primary fitness goal?</strong></label>
-<select class="form-select">
+<select @bind="UIService.Settings.PrimaryGoal" class="form-select">
     <option value="FatLoss">Fat Loss</option>
     <option value="MuscleGain">Muscle Gain</option>
     <option value="Endurance">Endurance</option>
@@ -37,17 +49,18 @@
 <hr />
 @* ACCESSIBILITY OPTIONS *@
 <label><strong>3. Accessibility Preferences</strong></label>
+<br />
 <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
-    <input type="checkbox" class="btn-check" id="3btncheck1" autocomplete="off">
+    <input @bind="UIService.Settings.HighContrast" type="checkbox" class="btn-check" id="3btncheck1" autocomplete="off">
     <label class="btn btn-outline-primary" for="3btncheck1">Enable High Contrast Mode</label>
 
-    <input type="checkbox" class="btn-check" id="3btncheck2" autocomplete="off">
+    <input @bind="UIService.Settings.DyslexicFont" type="checkbox" class="btn-check" id="3btncheck2" autocomplete="off">
     <label class="btn btn-outline-primary" for="3btncheck2">Enable Dyslexia-Friendly Font</label>
 
-    <input type="checkbox" class="btn-check" id="3btncheck3" autocomplete="off">
+    <input @bind="UIService.Settings.ReduceAnimations" type="checkbox" class="btn-check" id="3btncheck3" autocomplete="off">
     <label class="btn btn-outline-primary" for="3btncheck3">Reduce Animations</label>
 
-    <input type="checkbox" class="btn-check" id="3btncheck4" autocomplete="off">
+    <input @bind="UIService.Settings.LargerTextSize" type="checkbox" class="btn-check" id="3btncheck4" autocomplete="off">
     <label class="btn btn-outline-primary" for="3btncheck4">Larger text size</label>
 </div>
 <br />
@@ -55,20 +68,21 @@
 
  @* TRACKING*@
 <label><strong>4. What do you want to track?</strong></label>
+<br />
 <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
-    <input type="checkbox" class="btn-check" id="4btncheck1" autocomplete="off">
+    <input @bind="UIService.Settings.Calories" type="checkbox" class="btn-check" id="4btncheck1" autocomplete="off">
     <label class="btn btn-outline-primary" for="4btncheck1">Calories only</label>
 
-    <input type="checkbox" class="btn-check" id="4btncheck2" autocomplete="off">
+    <input @bind="UIService.Settings.Macros" type="checkbox" class="btn-check" id="4btncheck2" autocomplete="off">
     <label class="btn btn-outline-primary" for="4btncheck2">Macros (protein/carbohydrate/fat)</label>
 
-    <input type="checkbox" class="btn-check" id="4btncheck3" autocomplete="off">
+    <input @bind="UIService.Settings.Exercise" type="checkbox" class="btn-check" id="4btncheck3" autocomplete="off">
     <label class="btn btn-outline-primary" for="4btncheck3">Exercise only</label>
 
-    <input type="checkbox" class="btn-check" id="4btncheck4" autocomplete="off">
+    <input @bind="UIService.Settings.WeightTrends" type="checkbox" class="btn-check" id="4btncheck4" autocomplete="off">
     <label class="btn btn-outline-primary" for="4btncheck4">Weight trends</label>
 
-    <input type="checkbox" class="btn-check" id="4btncheck5" autocomplete="off">
+    <input @bind="UIService.Settings.ShowAdvancedMetrics" type="checkbox" class="btn-check" id="4btncheck5" autocomplete="off">
     <label class="btn btn-outline-primary" for="4btncheck5">Show advanced metrics (RPE / RIR / Macros)</label>
 </div>
 
@@ -79,13 +93,13 @@
 <label><strong>5. What motivates you the most?</strong></label>
 <br />
 <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
-    <input type="checkbox" class="btn-check" id="5btncheck1" autocomplete="off">
+    <input @bind="UIService.Settings.EnableGamification" type="checkbox" class="btn-check" id="5btncheck1" autocomplete="off">
     <label class="btn btn-outline-primary" for="5btncheck1">Visual rewards</label>
 
-    <input type="checkbox" class="btn-check" id="5btncheck2" autocomplete="off">
+    <input @bind="UIService.Settings.ProgressData" type="checkbox" class="btn-check" id="5btncheck2" autocomplete="off">
     <label class="btn btn-outline-primary" for="5btncheck2">Progress data</label>
 
-    <input type="checkbox" class="btn-check" id="5btncheck3" autocomplete="off">
+    <input @bind="UIService.Settings.MinimalInterface" type="checkbox" class="btn-check" id="5btncheck3" autocomplete="off">
     <label class="btn btn-outline-primary" for="5btncheck3">Minimal interface</label>
 </div>
 
@@ -107,9 +121,22 @@
     private string confirmationMessage = "";
 
     // Called when user clicks "Apply Settings"
-    private void ApplySettings()
+    private async Task ApplySettings()
     {
+        // Show confirmation immediately
         confirmationMessage = "Your preferences have been saved and applied.";
+        StateHasChanged();
+
+        // Keep the message visible for 1 second
+        await Task.Delay(1000);
+
+        // Hide the confirmation message
+        confirmationMessage = string.Empty;
+        StateHasChanged();
+
+        // Reload the current page to apply settings
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
+
 }
 

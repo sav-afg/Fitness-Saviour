@@ -90,7 +90,7 @@
 *@
 <div class="d-sm-flex justify-content-between">
     <button type="button" class="btn btn-secondary">Enter</button>
-    <button type="button" class="btn btn-info">Exercise advice</button>
+    <button type="button" class="btn btn-info" @onclick="NavToExerciseQuestionnaire">Exercise advice</button>
 </div>
 
 
@@ -99,5 +99,10 @@
     private void NavToHypertrophy()
     {
         NavigationManager.NavigateTo("hypertrophy");
+    }
+
+    private void NavToExerciseQuestionnaire()
+    {
+        NavigationManager.NavigateTo("exercisequestionnaire");
     }
 }

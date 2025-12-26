@@ -1,0 +1,15 @@
+﻿.dyslexic-font {
+    font-family: "OpenDyslexic", Arial, sans-serif;
+}
+
+
+
+.high-contrast {
+    background-color: black;
+    color: white;
+}
+
+.large-text {
+    font-size: 1.25rem;
+    
+}

@@ -1,6 +1,20 @@
-﻿@page "/"
+﻿@* Pseudocode / Plan:
+   - Replace the simple "Summary Statistics" button with a Bootstrap card.
+   - Card structure:
+     - Header: "Summary Statistics"
+     - Body:
+       - If chart data exists, render a list-group of labels and corresponding values (first dataset).
+       - Otherwise show a muted "No summary data available." message.
+     - Footer: Action button that navigates to the graphs page (reuse existing NavToGraphs).
+   - Use existing `chartData` and dataset values where available.
+   - Preserve existing styling and high-contrast helper where relevant.
+*@
+
+@page "/"
+@using WebsiteFirstDraft.Data.Models
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
+@inject UISettingsService UI
 
 <PageTitle>HomePage</PageTitle>
 
@@ -26,72 +40,151 @@
 @* Welcome message *@
 <div class="container-fluid text-center">
     <div class="row" style="margin:2%;">
-        <p>Welcome message/Motivational</p>
+
+        @switch (UI.Settings.PrimaryGoal)
+        {
+            case "FatLoss":
+                <p>@(NewQuote(FatLossQuotes))</p>
+                break;
+            case "MuscleGain":
+                <p>@(NewQuote(HypertrophyQuotes))</p>
+                break;
+            case "Endurance":
+                <p>@(NewQuote(EnduranceQuotes))</p>
+                break;
+            default:
+                <p>@(NewQuote(GeneralHealthQuotes))</p>
+                break;
+        }
     </div>
 </div>
 
 @* images *@
-<div class="container-fluid text-center">
-    <div class="row" style="margin:2%;">
-        <div class="col-sm-4">
 
-            <figure class="figure">
-                <img src="https://static.vecteezy.com/system/resources/previews/028/144/649/original/bunch-of-bananas-cartoon-illustration-banana-fruit-flat-icon-outline-vector.jpg"
-                class="rounded mx-auto d-block" alt="Food Logging" width="304" height="236" @onclick="NavToFoodLogging">
-                <figcaption class="figure-caption">Food Logging</figcaption>
-            </figure>
+    <div class="container-fluid text-center">
+        <div class="row" style="margin:2%;">
+            <div class="col-sm-4">
 
-        </div>
-        <div class="col-sm-4">
+                <figure class="figure">
+                    <img src="https://static.vecteezy.com/system/resources/previews/028/144/649/original/bunch-of-bananas-cartoon-illustration-banana-fruit-flat-icon-outline-vector.jpg"
+                    class="rounded mx-auto d-block" alt="Food Logging" width="304" height="236" @onclick="NavToFoodLogging">
+                <figcaption class="figure-caption @ContrastMode()">
+                    <button type="button" class="btn btn-primary" @onclick="NavToFoodLogging">
+                        Food Logging
+                    </button>
+                </figcaption>
+                </figure>
 
-            <figure class="figure">
-                <img src="https://st2.depositphotos.com/3557671/11465/v/950/depositphotos_114657618-stock-illustration-treadmill-icon-cartoon-single-sport.jpg"
-                     class="rounded mx-auto d-block" alt="Excercise Logging" width="304" height="236" @onclick="NavToExerciseLogging">
-                <figcaption class="figure-caption">Excercise Logging</figcaption>
-            </figure>
+            </div>
+            <div class="col-sm-4">
 
-        </div>
-        <div class="col-sm-4">
+                <figure class="figure">
+                    <img src="https://st2.depositphotos.com/3557671/11465/v/950/depositphotos_114657618-stock-illustration-treadmill-icon-cartoon-single-sport.jpg"
+                    class="rounded mx-auto d-block" alt="Excercise Logging" width="304" height="236" @onclick="NavToExerciseLogging">
+                <figcaption class="figure-caption @ContrastMode()">
+                    <button type="button" class="btn btn-primary" @onclick="NavToExerciseLogging">
+                        Exercise Logging
+                    </button>
+                </figcaption>
+                </figure>
 
-            <figure class="figure">
-                <img src="https://tse1.mm.bing.net/th/id/OIP.GpGlhBwR00XUFDA4Xa8p4AHaEc?rs=1&pid=ImgDetMain&o=7&rm=3"
-                class="rounded mx-auto d-block" alt="Graphs" width="304" height="236">
-                <figcaption class="figure-caption">Graphs</figcaption>
-            </figure>
+            </div>
+            <div class="col-sm-4">
 
-        </div>
-    </div>
-</div>
+                <figure class="figure">
+                    <img src="https://tse1.mm.bing.net/th/id/OIP.GpGlhBwR00XUFDA4Xa8p4AHaEc?rs=1&pid=ImgDetMain&o=7&rm=3"
+                    class="rounded mx-auto d-block" alt="Graphs" width="304" height="236" @onclick="NavToGraphs">
+                <figcaption class="figure-caption @ContrastMode()">
+                    <button type="button" class="btn btn-primary" @onclick="NavToGraphs">
+                        Graphs
+                    </button>
+                </figcaption>
+                </figure>
 
-<hr class="bg-primary border-2 border-top border-primary" />
-
-
-
-<div class="container text-center">
-    <!-- Columns are always 50% wide, on mobile and desktop -->
-    <div class="row">
-        <div class="col-6">
-
-            <figure class="figure">
-                <figcaption class="figure-caption">Daily calorie budget Accumulator</figcaption>
-                <img src="https://tse4.mm.bing.net/th/id/OIP.1aH9UL6FeeKt_9OxxLPVlgAAAA?cb=ucfimg2&ucfimg=1&rs=1&pid=ImgDetMain&o=7&rm=3" 
-                    class="rounded mx-auto d-block" alt="Daily calorie budget Accumulator" width="304" height="236">
-            </figure>
-
-        </div>
-        <div class="col-6">
-
-            <figure class="figure">
-                <figcaption class="figure-caption">Summary statistics</figcaption>
-                <img src="https://th.bing.com/th/id/OIP.OVLcDx4KA-V4q520JuuumAHaFJ?w=258&h=180&c=7&r=0&o=7&cb=ucfimg2&pid=1.7&rm=3&ucfimg=1"
-                    class="rounded mx-auto d-block" alt="Summary statistics" width="304" height="236">
-            </figure>
-
+            </div>
         </div>
     </div>
-</div>
+
+    <hr class="bg-primary border-2 border-top border-primary" />
+
+    <div class="container text-center">
+        <!-- Columns are always 50% wide, on mobile and desktop -->
+        <div class="row">
+            <div class="col-6">
+
+                @*Sets up a pie chart with a width property.*@
+            <PieChart @ref="pieChart" Width="400" />
+
+
+
+            </div>
+
+            <div class="col-6">
+                @* Summary Statistics Card *@
+                <div class="card text-start">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Summary Statistics</span>
+
+                        @*Will display a message indicating high contrast mode is on, if its on*@
+                        @if (UI.Settings.HighContrast)
+                        {
+                            <span class="badge bg-secondary">High Contrast</span>
+                        }
+                    </div>
+                    <div class="card-body">
+
+                        @*Validation to ensure that there is data to be displayed. If not it displays a message saying no summary data available*@
+                        @if (chartData?.Labels != null && chartData.Datasets?.Count > 0 && chartData.Datasets[0] is PieChartDataset dataset && dataset.Data != null)
+                        {
+
+                            @*Displays a list of every item from the dataset alongside the number associated with it*@
+                            <ul class="list-group list-group-flush">
+                                @for (var i = 0; i < chartData.Labels.Count; i++)
+                                {
+                                    var label = chartData.Labels[i];
+                                    var value = i < dataset.Data.Count ? dataset.Data[i] : null;
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>@label</span>
+
+                                        @*The icon will display the grams of macros the user has consumed*@
+                                        <span class="badge bg-primary rounded-pill">@((value ?? 0).ToString())g</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            @*Default*@
+                            <p class="text-muted mb-0">No summary data available.</p>
+                        }
+                    </div>
+
+                    @*Button that navigates to the graphs page*@
+                    <div class="card-footer text-end">
+                        <button type="button" class="btn btn-primary" @onclick="NavToGraphs">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+
+    <div>
+        <div class="row">
+            <div>
+                <p>Not sure where to start? Try out our questionnaires:</p>
+                <div class="d-sm-flex justify-content-between">
+                    <button type="button" class="btn btn-primary" @onclick="NavToDietQuestionnaire">Diet Advice</button>
+                    <button type="button" class="btn btn-primary" @onclick="NavToExerciseQuestionnaire">Exercise advice</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 @code {
+    #region Navigation
     private void NavToAccountDetails()
     {
         NavigationManager.NavigateTo("accountdetails");
@@ -111,4 +204,216 @@
     {
         NavigationManager.NavigateTo("uipersonalisation");
     }
+
+    private void NavToGraphs()
+    {
+        NavigationManager.NavigateTo("graphs");
+    }
+
+    private void NavToExerciseQuestionnaire()
+    {
+        NavigationManager.NavigateTo("exercisequestionnaire");
+    }
+
+    private void NavToDietQuestionnaire()
+    {
+        NavigationManager.NavigateTo("dietquestionnaire");
+    }
+    #endregion
+
+
+    @*Reference to the rendered PieChart component, allowing inbuilt methods to be called
+    This class originated from the NuGet package i installed (Blazor Bootstrap)*@
+    private PieChart pieChart = default!;
+
+    @*Adds configuration options for the chart such as title, legend position, responsiveness*@
+    private PieChartOptions pieChartOptions = default!;
+
+    @*Another component that holds labels and datasets*@
+    private ChartData chartData = default!;
+
+    @*Stores an array of predefined colours to use for the pie slices*@
+    private string[]? backgroundColors;
+
+    @*default! tells the compiler that a value will be assigned to the fields so dont warn about nulls*@
+
+
+    @*Tracks how many datasets have been created*@
+    private int datasetsCount = 0;
+
+    @*Tracks how many labels exist which is important for data and colour alignment*@
+    private int dataLabelsCount = 0;
+
+    @*Generates random values for demo data. Will eventually use data from a database.*@
+    private Random rnd = new();
+
+
+    @*This runs once when the component is created*@
+    protected override void OnInitialized()
+    {
+
+        @*Loads default colours and creates the charts data alongside 3 labels with 1 dataset containing random values for each label*@
+        backgroundColors = ColorUtility.CategoricalTwelveColors;
+        chartData = new ChartData { Labels = GetDefaultDataLabels(3), Datasets = GetDefaultDataSets(1) };
+
+        @*Configures chart options to have a responsive layout, title text and visibility, legend positioned on the bottom*@
+        pieChartOptions = new();
+        pieChartOptions.Responsive = true;
+        pieChartOptions.Plugins.Title!.Text = "Daily Calorie Budget Accumulator";
+        pieChartOptions.Plugins.Title.Display = true;
+
+        pieChartOptions.Plugins.Legend.Position = "bottom";
+    }
+
+    @*Blazor components render before child elements are fully available. firstRender == true ensures the chart is initialised only once*@
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await pieChart.InitializeAsync(chartData, pieChartOptions);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    @*This region is used to prepare the data*@
+    #region Data Preparation
+
+
+    @*Creates a list of datasets with each dataset representing a pie chart series*@
+    private List<IChartDataset> GetDefaultDataSets(int numberOfDatasets)
+    {
+        var datasets = new List<IChartDataset>();
+
+        for (var index = 0; index < numberOfDatasets; index++)
+        {
+            datasets.Add(GetRandomPieChartDataset());
+        }
+
+        return datasets;
+    }
+
+    @*Creates a dataset with a label, random numeric values and matching background colours*@
+    private PieChartDataset GetRandomPieChartDataset()
+    {
+        datasetsCount += 1;
+        return new() { Label = "Grams" , Data = GetRandomData(), BackgroundColor = GetRandomBackgroundColors() };
+    }
+
+    @*Generates random data. One value per label ranging from 0-100*@
+    private List<double?> GetRandomData()
+    {
+        var data = new List<double?>();
+        for (var index = 0; index < dataLabelsCount; index++)
+        {
+            data.Add(rnd.Next(0, 100));
+        }
+
+        return data;
+    }
+
+    @*Assigns colours to each slice in the pie*@
+    private List<string> GetRandomBackgroundColors()
+    {
+        var colors = new List<string>();
+        for (var index = 0; index < dataLabelsCount; index++)
+        {
+            colors.Add(backgroundColors![index]);
+        }
+
+        return colors;
+    }
+
+    @*Generates labels and keeps dataLabelsCount in sync so data and colours align*@
+    private List<string> GetDefaultDataLabels(int numberOfLabels)
+    {
+        var labels = new List<string>();
+        for (var index = 0; index < numberOfLabels; index++)
+        {
+            labels.Add(GetNextDataLabel());
+            dataLabelsCount += 1;
+        }
+
+        return labels;
+    }
+
+
+    private string Macro(int num)
+    {
+        switch (num)
+        {
+            case 0:
+                return "Carbs";
+
+            case 1:
+                return "Protein";
+            default:
+                return "Fats";
+        }
+    }
+
+
+    private string GetNextDataLabel() => $"{Macro(dataLabelsCount)}";
+
+    private string GetNextDataBackgrounfColor() => backgroundColors![dataLabelsCount];
+
+    #endregion  Data Preparation
+
+
+    #region Arrays of quotes
+    private string[] GeneralHealthQuotes = new string[5]
+    {
+    "You can, you should, and if you're brave enough to start, you will.",
+    "The only person who can stop you from reaching your goals is you.",
+    "Motivation is what gets you started. Habit is what keeps you going.",
+    "If you're tired of starting over—quit giving up.",
+    "It isn't the mountains ahead to climb that wears you out; it's the pebble in your shoe."
+    };
+
+    private string[] HypertrophyQuotes = new string[5]
+    {
+    "Success isn't always about 'greatness', it's about consistency. Consistent, hard work gains success. Greatness will come.",
+    "All progress takes place outside the comfort zone.",
+    "Going to the gym is great for your body, but it's also great for your mind.",
+    "Know that you can start late, look different, be uncertain, and still succeed.",
+    "Lightweight, Baby!"
+    };
+
+    private string[] EnduranceQuotes = new string[5]
+    {
+    "Sometimes, carrying on, just carrying on, is the superhuman achievement.",
+    "Overpower. Overtake. Overcome.",
+    "Erase the word 'failure' from your vocabulary. No case is ever truly closed, and no challenge is ever over.",
+    "If you run, you are a runner. It doesn't matter how fast or how far. It doesn't matter if today is your first day or if you've been running for 20 years. There is no test to pass, no license to earn, no membership card to get. You just run.",
+    "When I feel tired, I just think about how great I will feel once I finally reach my goal."
+    };
+
+    private string[] FatLossQuotes = new string[5]
+    {
+    "The hardest thing about exercise is to start doing it. Once you are doing exercise regularly, the hardest thing is to stop it.",
+    "Take care of your body. It's the one place you have to live.",
+    "An early morning walk is a blessing for the whole day.",
+    "It's going to be a journey. It's not a sprint to get in shape.",
+    "It's not so much that I began to run, but that I continued."
+    };
+    #endregion
+
+    private Random random = new Random();
+
+    private string NewQuote(string[] quotes)
+    {       
+        return quotes[random.Next(0, 5)];
+    }
+
+    private string? ContrastMode()
+    {
+        if (UI.Settings.HighContrast)
+        {
+            return "high-contrast";
+        }
+        else
+        {
+            return null;
+        }
+    }
+
 }

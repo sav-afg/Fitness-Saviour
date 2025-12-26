@@ -1,6 +1,8 @@
 ﻿@page "/hypertrophy"
+@using WebsiteFirstDraft.Data.Models
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
+@inject UISettingsService UIService
 
 @* PSEUDOCODE / PLAN:
    - Ensure the numeric accumulators (sets, reps, weight, rpe, rir) never become negative.
@@ -135,35 +137,36 @@
                 </div>
             </div>
         </div>
-
-        @*RPE*@
-        <div class="row align-items-center mb-3">
-            <div class="col-4 text-end">
-                <label class="form-label mb-0">RPE</label>
-            </div>
-            <div class="col-8">
-                <div class="input-group" style="max-width: 160px;">
-                    <button class="btn btn-outline-secondary" @onclick="Decrementrpe" disabled="@(rpeAccumulator == 0)">−</button>
-                    <input type="number" class="form-control text-center" @bind="rpeAccumulator" min="0" />
-                    <button class="btn btn-outline-secondary" @onclick="Incrementrpe" disabled="@(rpeAccumulator == 10)">+</button>
+        @if (UIService.Settings.ShowAdvancedMetrics)
+        {
+            @*RPE*@
+            <div class="row align-items-center mb-3">
+                <div class="col-4 text-end">
+                    <label class="form-label mb-0">RPE</label>
+                </div>
+                <div class="col-8">
+                    <div class="input-group" style="max-width: 160px;">
+                        <button class="btn btn-outline-secondary" @onclick="Decrementrpe" disabled="@(rpeAccumulator == 0)">−</button>
+                        <input type="number" class="form-control text-center" @bind="rpeAccumulator" min="0" />
+                        <button class="btn btn-outline-secondary" @onclick="Incrementrpe" disabled="@(rpeAccumulator == 10)">+</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        @*RIR*@
-        <div class="row align-items-center">
-            <div class="col-4 text-end">
-                <label class="form-label mb-0">RIR</label>
-            </div>
-            <div class="col-8">
-                <div class="input-group" style="max-width: 160px;">
-                    <button class="btn btn-outline-secondary" @onclick="Decrementrir" disabled="@(rirAccumulator == 0)">−</button>
-                    <input type="number" class="form-control text-center" @bind="rirAccumulator" min="0" />
-                    <button class="btn btn-outline-secondary" @onclick="Incrementrir" disabled="@(rirAccumulator == 10)">+</button>
+            @*RIR*@
+            <div class="row align-items-center">
+                <div class="col-4 text-end">
+                    <label class="form-label mb-0">RIR</label>
+                </div>
+                <div class="col-8">
+                    <div class="input-group" style="max-width: 160px;">
+                        <button class="btn btn-outline-secondary" @onclick="Decrementrir" disabled="@(rirAccumulator == 0)">−</button>
+                        <input type="number" class="form-control text-center" @bind="rirAccumulator" min="0" />
+                        <button class="btn btn-outline-secondary" @onclick="Incrementrir" disabled="@(rirAccumulator == 10)">+</button>
+                    </div>
                 </div>
             </div>
-        </div>
-
+        }
     </div>
 
     <div class="d-sm-flex justify-content-between">
@@ -176,7 +179,7 @@
 <div class="d-sm-flex justify-content-between">
     <div class="dropdown-center">
         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Centered dropdown
+            Exercise Type
         </button>
         <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="#">Sets and Reps</a></li>

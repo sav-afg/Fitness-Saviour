@@ -1,0 +1,209 @@
+﻿@page "/exercisequestionnaire"
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+@using WebsiteFirstDraft.Data.Models
+@* Adding the namespace for the AspNetCore form component *@
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="container mt-5">
+
+    @* PAGE TITLE *@
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Exercise Recommendation Questionnaire</h2>
+        <p class="text-muted">
+            Answer the questions below to generate a personalised, graded list
+            of exercise routines suited to your goals and preferences.
+        </p>
+    </div>
+
+    @*  QUESTIONNAIRE CARD *@
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            @* QUESTION 1 *@
+            <div class="mb-4">
+                <label class="form-label" @bind="FitnessGoal">
+                    <strong>
+                        What is your primary fitness goal?
+                    </strong>
+                </label>
+                <select class="form-select" @bind="FitnessGoal">
+                    <option disabled value="">Select an option</option>
+                    <option>Fat loss</option>
+                    <option>Muscle gain</option>
+                    <option>Endurance</option>
+                    <option>General Health</option>
+                </select>
+            </div>
+
+            @*  QUESTION 2 *@
+
+            <label class="form-label"><strong>Do you have any injuries or limitations? </strong></label>
+            <br />
+            <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                <input @bind="JointPain" type="checkbox" class="btn-check" id="Joint pain" autocomplete="off">
+                <label class="btn btn-outline-primary" for="Joint pain">Joint pain</label>
+
+                <input @bind="BackIssues" type="checkbox" class="btn-check" id="Back issues" autocomplete="off">
+                <label class="btn btn-outline-primary" for="Back issues">Back issues</label>
+
+                <input @bind="CardioLimitations" type="checkbox" class="btn-check" id="Cardio Limitations" autocomplete="off">
+                <label class="btn btn-outline-primary" for="Cardio Limitations">Cardio Limitations</label>
+            </div>
+
+            <br />
+            <br />
+
+
+            @*  QUESTION 3  *@
+            @* Using InputRadioGroup component which allows the user to select an option from a predefined set of choices in a list of radio buttons *@
+
+            <label><strong>How many days per week can you train? </strong> </label>
+            <InputRadioGroup @bind-Value="FrequencyPerWeek">
+                <div class="form-check">
+                    <InputRadio class="form-check-input " id="1" Value="@TrainingFrequency.one" />
+                    <label class="form-check-label" for="1">1</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input " id="2" Value="@TrainingFrequency.two" />
+                    <label class="form-check-label" for="2">2</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input " id="3" Value="@TrainingFrequency.three" />
+                    <label class="form-check-label" for="3">3</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input " id="4" Value="@TrainingFrequency.four" />
+                    <label class="form-check-label" for="4">4</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input " id="5" Value="@TrainingFrequency.five" />
+                    <label class="form-check-label" for="5">5</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="6" Value="@TrainingFrequency.six" />
+                    <label class="form-check-label" for="6">6</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="7" Value="@TrainingFrequency.seven" />
+                    <label class="form-check-label" for="7">7</label>
+                </div>
+            </InputRadioGroup>
+            <br />
+
+            @*QUESTION 4*@
+            <div class="mb-4">
+                <label class="form-label">
+                    <strong>
+                        Where will you mainly be exercising?
+                    </strong>
+                </label>
+                <select class="form-select" @bind="LocationPreference">
+                    <option disabled value="">Select an option</option>
+                    <option>Gym</option>
+                    <option>Home</option>
+                    <option>Outdoors</option>
+                    <option>Mixed</option>
+                </select>
+            </div>
+
+            <br />
+
+
+            @* QUESTION 5  *@
+            <div class="mb-4">
+                <label class="form-label">
+                    <strong>
+                        What intensity level do you prefer?
+                    </strong>
+                </label>
+                <select class="form-select" @bind="Intensity">
+                    <option disabled value="">Select an option</option>
+                    <option>Low</option>
+                    <option>Moderate</option>
+                    <option>High</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">
+                    <strong>
+                        What is your experience level with exercise?
+                    </strong>
+                </label>
+                <select class="form-select" @bind="ExperienceLevel">
+                    <option disabled value="">Select an option</option>
+                    <option>Beginner</option>
+                    <option>Intermediate</option>
+                    <option>Advanced</option>
+                </select>
+            </div>
+
+            @* SUBMIT BUTTON *@
+            <div class="text-center">
+                <button class="btn btn-success btn-lg @(IsFormIncomplete ? "disabled" : "")"
+                        @onclick="GenerateExerciseList"
+                        disabled="@IsFormIncomplete"
+                        aria-disabled="@(IsFormIncomplete.ToString().ToLower())">
+                    Generate Exercise List
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* <p>FitnessGoal: @FitnessGoal</p>
+<p>JointPain: @JointPain, BackIssues: @BackIssues, CardioLimitations: @CardioLimitations</p>
+<p>StructurePreference: @ExperienceLevel</p>
+<p>Intensity: @Intensity</p>
+<p>ExperienceLevel: @ExperienceLevel</p>
+<p>FrequencyPerWeek: @FrequencyPerWeek</p> *@
+
+
+@code {
+
+    private string FitnessGoal;
+    private string ExperienceLevel;
+    private string LocationPreference;
+    private bool JointPain;
+    private bool BackIssues;
+    private bool CardioLimitations;
+    private string Intensity;
+
+    private TrainingFrequency? FrequencyPerWeek = null;
+
+    private enum TrainingFrequency
+    {
+        one = 1,
+        two,
+        three,
+        four,
+        five,
+        six,
+        seven
+    }
+
+    // Simple validation to ensure required fields are answered
+    private bool IsFormIncomplete =>
+        String.IsNullOrEmpty(FitnessGoal) ||
+
+        // String.IsNullOrEmpty(StructurePreference) ||
+        FrequencyPerWeek == null ||
+
+        String.IsNullOrEmpty(ExperienceLevel) ||
+        LocationPreference == null
+                                                ||
+        Intensity == null;
+    
+    private void GenerateExerciseList()
+    {
+        // Guard to ensure we don't navigate when form is incomplete
+        if (IsFormIncomplete)
+        {
+            return;
+        }
+
+        Navigation.NavigateTo("/exerciseresults");
+    }
+}
