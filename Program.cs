@@ -5,8 +5,7 @@ using WebsiteFirstDraft.Components;
 using WebsiteFirstDraft.Data.Models;
 using Syncfusion.Blazor;
 using Microsoft.AspNetCore.Components.Web;
-
-
+using Microsoft.EntityFrameworkCore;
 
 namespace WebsiteFirstDraft
 {
@@ -14,7 +13,11 @@ namespace WebsiteFirstDraft
     {
         public static void Main(string[] args)
         {
+
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
             // Add services to the container.
             builder.Services.AddRazorComponents()

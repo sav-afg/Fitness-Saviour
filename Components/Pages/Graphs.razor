@@ -2,115 +2,229 @@
 @using WebsiteFirstDraft.Data.Models
 @rendermode InteractiveServer
 
-<BarChart @ref="barChart" Class="mb-4" />
-<LineChart @ref="lineChart" />
+<br />
+<div class="container-fluid">
+    <div class="card shadow-sm">
+        <div class="card-body">
 
-@code {
-    private BarChart barChart = default!;
-    private LineChart lineChart = default!;
+            @* QUESTION 1 *@
+            <div class="mb-4">
+                <label class="form-label">
+                    <strong>
+                        What category of graph are you looking for?
+                    </strong>
+                </label>
+                <select class="form-select" @bind="GraphCategory">
+                    <option disabled value="">Select an option</option>
+                    <option>BodyweightProgress</option>
+                    <option>CalorieTracking</option>
+                    <option>Macros</option>
+                    <option>Hypertrophy</option>
+                    <option>Exercise</option>
+                    <option>Consistency</option>
+                </select>
+            </div>
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
+        @* QUESTION 2 *@
+        <div class="mb-4">
+            <label class="form-label">
+                <strong>
+                    Select your graph
+                </strong>
+            </label>
+            <select class="form-select">
+                <option disabled value="">Select an option</option>
+
+                    @if (GraphCategory.HasValue)
+                    {
+                        switch ((int) GraphCategory)
+                        {
+                            case 0:
+                                <option>Bodyweight over time</option>
+                                <option>Weight Change per week</option>
+                                break;
+                            case 1:
+                                <option>Daily Calorie Intake vs Target</option>
+                                <option>Daily calorie surplus/deficit</option>
+                                break;
+                            case 2:
+                                <option>Average Macro Distribution</option>
+                                <option>Daily macro intake</option>
+                                break;
+                            case 3:
+                                <option>#To be Completed</option>
+                                break;
+                            case 4:
+                                <option>Calories burnt through Exercise</option>
+                                <option>Exercise type frequency</option>
+                                break;
+                            case 5:
+                                <option>Logging streak over time</option>
+                                <option>Activity consistency</option>
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+            </select>
+        </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid overflow-x-auto">
+    <LineChart @ref="lineChart" Width="800" Height="400" />
+</div>
+
+@code 
+{
+        // Reference to the LineChart component instance (initialised later)
+        private LineChart lineChart = default!; 
+
+        // Configuration options for the line chart
+        private LineChartOptions lineChartOptions = default!; 
+
+        // Data model (labels + datasets) for the chart
+        private ChartData chartData = default!; 
+
+        // Counter for how many datasets have been created
+        private int datasetsCount;
+
+        // Counter for how many labels (data points) have been created
+        private int labelsCount;
+
+        // Random number generator used to create sample data
+        private Random random = new();
+
+        // Lifecycle method: initialize component state before rendering
+        protected override void OnInitialized()
         {
-            await RenderManhattanAsync();
-            await RenderWormAsync();
+            // Create initial labels and datasets for the chart
+            chartData = new ChartData { Labels = GetDefaultDataLabels(6), Datasets = GetDefaultDataSets(1) };
+
+            // Set default chart options (horizontal index axis, interaction mode, responsive)
+            // and configure Y axis to allow negative values in the range -1 .. 1.
+            lineChartOptions = new()
+            {
+                IndexAxis = "x",
+                Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
+                Responsive = true,
+                // Scales configuration to allow negative values on Y axis.
+                // Types used here are consistent with the chart types available in the project.
+                Scales = new Scales
+                {
+                    Y = new()
+                    {
+                        BeginAtZero = false,
+                        Min = -1,
+                        Max = 1
+                    }
+                }
+            };
         }
 
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-    private async Task RenderManhattanAsync()
-    {
-        var data = new ChartData
+        // Lifecycle method: runs after component has rendered
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            Labels = new List<string> { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" },
-            Datasets = new List<IChartDataset>()
-                {
-                    new BarChartDataset()
-                    {
-                        Label = "India",
-                        Data = new List<double?>{ 9, 11, 9, 4, 17, 16, 9, 11, 5, 14, 15, 6, 15, 9, 6, 8, 13, 3, 4, 11 },
-                        BackgroundColor = new List<string>{ "rgb(88, 80, 141)" },
-                        CategoryPercentage = 0.8,
-                        BarPercentage = 1,
-                    },
-                    new BarChartDataset()
-                    {
-                        Label = "England",
-                        Data = new List<double?>{ 1, 0, 7, 11, 5, 2, 13, 8, 9, 10, 7, 13, 7, 5, 9, 5, 10, 5, 11, 2 },
-                        BackgroundColor = new List<string> { "rgb(255, 166, 0)" },
-                        CategoryPercentage = 0.8,
-                        BarPercentage = 1,
-                    }
-                }
-        };
+            // If this is the first render, initialize the JS/chart with current data and options
+            if (firstRender)
+            {
+                await lineChart.InitializeAsync(chartData, lineChartOptions);
+            }
+            // Call base implementation
+            await base.OnAfterRenderAsync(firstRender);
+        }
 
-        var options = new BarChartOptions();
 
-        options.Interaction.Mode = InteractionMode.Index;
+        #region Data Preparation
 
-        options.Plugins.Title!.Text = "MANHATTAN";
-        options.Plugins.Title.Display = true;
-        options.Plugins.Title.Font = new ChartFont { Size = 20 };
-
-        options.Responsive = true;
-
-        options.Scales.X!.Title = new ChartAxesTitle { Text = "Overs", Display = true };
-        options.Scales.Y!.Title = new ChartAxesTitle { Text = "Runs", Display = true };
-
-        await barChart.InitializeAsync(data, options);
-    }
-
-    private async Task RenderWormAsync()
-    {
-        var data = new ChartData
+        // Create a list of default datasets
+        private List<IChartDataset> GetDefaultDataSets(int numberOfDatasets)
         {
-            Labels = new List<string> { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" },
-            Datasets = new List<IChartDataset>()
-                {
-                    new LineChartDataset()
-                    {
-                        Label = "India",
-                        Data = new List<double?>{ 9, 20, 29, 33, 50, 66, 75, 86, 91, 105, 120, 126, 141, 150, 156, 164, 177, 180, 184, 195 },
-                        BackgroundColor = "rgb(88, 80, 141)",
-                        BorderColor = "rgb(88, 80, 141)",
-                        BorderWidth = 2,
-                        HoverBorderWidth = 4,
-                        //PointBackgroundColor = "rgb(88, 80, 141)",
-                        //PointBorderColor = "rgb(88, 80, 141)",
-                        //PointRadius = 0, // hide points
-                        //PointHoverRadius = 4,
-                    },
-                    new LineChartDataset()
-                    {
-                        Label = "England",
-                        Data = new List<double?>{ 1, 1, 8, 19, 24, 26, 39, 47, 56, 66, 75, 88, 95, 100, 109, 114, 124, 129, 140, 142 },
-                        BackgroundColor = "rgb(255, 166, 0)",
-                        BorderColor = "rgb(255, 166, 0)",
-                        BorderWidth = 2,
-                        HoverBorderWidth = 4,
-                        // PointBackgroundColor = "rgb(255, 166, 0)",
-                        // PointBorderColor = "rgb(255, 166, 0)",
-                        // PointRadius = 0, // hide points
-                        // PointHoverRadius = 4,
-                    }
-                }
-        };
+            var datasets = new List<IChartDataset>();
 
-        var options = new LineChartOptions();
+            // Generate the requested number of random datasets
+            for (var index = 0; index < numberOfDatasets; index++)
+            {
+                datasets.Add(GetRandomLineChartDataset());
+            }
 
-        options.Interaction.Mode = InteractionMode.Index;
+            return datasets;
+        }
 
-        options.Plugins.Title!.Text = "WORM";
-        options.Plugins.Title.Display = true;
-        options.Plugins.Title.Font = new ChartFont { Size = 20 };
+        // Build a single LineChartDataset with random data and styling
+        private LineChartDataset GetRandomLineChartDataset()
+        {
+            // Select a color from a categorical palette based on datasetsCount
+            var c = ColorUtility.CategoricalTwelveColors[datasetsCount].ToColor();
 
-        options.Responsive = true;
+            // Increment the datasets counter (used for labeling and next color)
+            datasetsCount += 1;
 
-        options.Scales.X!.Title = new ChartAxesTitle { Text = "Overs", Display = true };
-        options.Scales.Y!.Title = new ChartAxesTitle { Text = "Runs", Display = true };
+            // Return a configured dataset with label, random data and appearance settings
+            return new LineChartDataset
+            {
+                Label = $"Weight change (kg)",
+                Data = GetRandomData(),
+                BackgroundColor = c.ToRgbaString(),
+                BorderColor = c.ToRgbString(),
+                PointRadius = new List<double> { 5 },
+                PointHoverRadius = new List<double> { 8 },
+            };
+        }
 
-        await lineChart.InitializeAsync(data, options);
+        // Generate a list of random numeric data points matching current label count
+        // Now returns values in the range -1 .. 1.
+        private List<double?> GetRandomData()
+        {
+            var data = new List<double?>();
+            for (var index = 0; index < labelsCount; index++)
+            {
+                // random.NextDouble() --> [0.0, 1.0)
+                // map to [-1.0, 1.0): (value * 2) - 1
+                data.Add((random.NextDouble() * 2.0) - 1.0);
+            }
+
+            return data;
+        }
+
+        // Create a list of default labels using GetNextDataLabel
+        private List<string> GetDefaultDataLabels(int numberOfLabels)
+        {
+            var labels = new List<string>();
+            for (var index = 0; index < numberOfLabels; index++)
+            {
+                labels.Add(GetNextDataLabel());
+            }
+
+            return labels;
+        }
+
+        // Produce the next sequential label (e.g., "Day 1", "Day 2") and increment label counter
+        private string GetNextDataLabel()
+        {
+            labelsCount += 1;
+            return $"Week {labelsCount}";
+        }
+
+
+    #endregion Data Preparation
+
+    private GraphCategories? GraphCategory;
+
+
+    private enum GraphCategories
+    {
+        BodyweightProgress,
+        CalorieTracking,
+        Macros,
+        Hypertrophy,
+        Exercise,
+        Consistency
     }
+
+
 }

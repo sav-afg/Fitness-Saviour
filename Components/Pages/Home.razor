@@ -1,16 +1,4 @@
-﻿@* Pseudocode / Plan:
-   - Replace the simple "Summary Statistics" button with a Bootstrap card.
-   - Card structure:
-     - Header: "Summary Statistics"
-     - Body:
-       - If chart data exists, render a list-group of labels and corresponding values (first dataset).
-       - Otherwise show a muted "No summary data available." message.
-     - Footer: Action button that navigates to the graphs page (reuse existing NavToGraphs).
-   - Use existing `chartData` and dataset values where available.
-   - Preserve existing styling and high-contrast helper where relevant.
-*@
-
-@page "/"
+﻿@page "/"
 @using WebsiteFirstDraft.Data.Models
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -113,7 +101,7 @@
             <div class="col-6">
 
                 @*Sets up a pie chart with a width property.*@
-            <PieChart @ref="pieChart" Width="400" />
+            <PieChart @ref="pieChart" Width="300" Height="300" />
 
 
 
