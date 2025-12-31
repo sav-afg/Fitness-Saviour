@@ -4,8 +4,7 @@
 @inject WebsiteFirstDraft.Data.Models.AppDbContext Db
 @using WebsiteFirstDraft.Data
 @using WebsiteFirstDraft.Data.Models
-
-
+@using BlazorBootstrap.Components
 
 @*Imported from food logging page.*@
 <h3>ExerciseLogging</h3>
@@ -39,18 +38,20 @@
 <div class="container-fluid">
     <div class="row d-flex align-items-stretch">
 
-        <table class="table">
+        <table>
             <thead>
                 <tr>
                     <th>Exercise Types</th>
                     <th>Exercise Names</th>
-                    <th>Exercise Grade</th>
-                    <th>Exercise Duration</th>
-                    <th></th>
+                    <th>Calories Burnt Per Minute</th>
+                    <th>Intensity Level</th>
+@*                     <th>Exercise Grade</th>
+                    <th>Exercise Duration</th> *@
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var exerciseType in ExerciseTypes)
+                @foreach (var exerciseType in exercise_types)
                 {
                     <tr>
                         <td>
@@ -59,18 +60,36 @@
                         <td>
                             <input @bind="exerciseType.ExerciseNames" />
                         </td>
-                        <td>
-                            <input />
+                         <td>
+                            <input @bind="exerciseType.CaloriesBurnedPerMinute" />
                         </td>
                         <td>
-                            <input />
-                        </td>
+                            <input @bind="exerciseType.IntensityLevel" class=@IntensityColour(exerciseType) />
+                        </td> 
                         <td>
-                            <button type="button" @onclick="() => Update(exerciseType)">Save</button>
-                            <button type="button" @onclick="() => Delete(exerciseType.Id)">Delete</button>
+                            <Button Color="ButtonColor.Success" @onclick="() => Update(exerciseType)">Save</Button>
+                            <Button Color="ButtonColor.Danger" @onclick="() => Delete(exerciseType.Id)">Delete</Button>
+                            <Button Color="ButtonColor.Primary">Log Exercise</Button>
                         </td>
                     </tr>
                 }
+                <tr>
+                    <td>
+                        <input @bind="newExerciseType.ExerciseTypes"/>
+                    </td>
+                    <td>
+                        <input @bind="newExerciseType.ExerciseNames" />
+                    </td>
+                    <td>
+                        <input @bind="newExerciseType.CaloriesBurnedPerMinute" />
+                    </td>
+                    <td>
+                        <input @bind="newExerciseType.IntensityLevel" />
+                    </td>
+                    <td>
+                        <button type="button" @onclick="() => Create()">Add</button>
+                    </td>
+                </tr>
             </tbody>
         </table>
 
@@ -138,3 +157,4 @@
     <button type="button" class="btn btn-secondary">Enter</button>
     <button type="button" class="btn btn-info" @onclick="NavToExerciseQuestionnaire">Exercise advice</button>
 </div> *@
+
