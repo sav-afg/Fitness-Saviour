@@ -1,0 +1,156 @@
+﻿@page "/workoutsplitgenerator"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@using WebsiteFirstDraft.Data
+@using WebsiteFirstDraft.Data.Models
+@using BlazorBootstrap.Components
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="container mt-5">
+
+    @* PAGE TITLE *@
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Workout Split Generator</h2>
+        <p class="text-muted">
+            Answer the questions below to generate a personalised, graded list
+            of workout splits suited to your goals and preferences.
+        </p>
+    </div>
+
+        @*  QUESTIONNAIRE CARD *@
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            @*Question 1*@
+            <div class="mb-4">
+                <div class="mb-4">
+                    <label class="form-label">
+                        <strong>
+                            How experienced are you with the gym?
+                        </strong>
+                    </label>
+                    <select class="form-select" @bind="Experience">
+                        <option disabled value="">Select an option</option>
+                        <option>Beginner</option>
+                        <option>Intermediate</option>
+                        <option>Advanced</option>
+                    </select>
+                </div>
+            </div>
+
+            @*Question 2*@
+
+            <label><strong>How many days per week can you train? </strong> </label>
+            <InputRadioGroup @bind-Value="FrequencyPerWeek">
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="day-1" Value="@TrainingFrequency.one" />
+                    <label class="form-check-label" for="day-1">1</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="day-2" Value="@TrainingFrequency.two" />
+                    <label class="form-check-label" for="day-2">2</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="day-3" Value="@TrainingFrequency.three" />
+                    <label class="form-check-label" for="day-3">3</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="day-4" Value="@TrainingFrequency.four" />
+                    <label class="form-check-label" for="day-4">4</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="day-5" Value="@TrainingFrequency.five" />
+                    <label class="form-check-label" for="day-5">5</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="day-6" Value="@TrainingFrequency.six" />
+                    <label class="form-check-label" for="day-6">6</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="day-7" Value="@TrainingFrequency.seven" />
+                    <label class="form-check-label" for="day-7">7</label>
+                </div>
+            </InputRadioGroup>
+            <br />
+            @*Question 3*@
+            <div class="mb-4">
+                <div class="mb-4">
+                    <label class="form-label">
+                        <strong>
+                            What muscle groups are you looking to bring up?
+                        </strong>
+                    </label>
+                    <select class="form-select" @bind="MuscleGroups">
+                        <option disabled value="">Select an option</option>
+                        <option>Upper</option>
+                        <option>Lower</option>
+                        <option>All</option>
+                    </select>
+                </div>
+            </div>
+
+            @*Question 4*@
+
+            <p><strong>Is enjoyment or optimisation more important to you?</strong></p>
+
+            @* Use a single InputRadioGroup so only one option can be selected at a time *@
+            <InputRadioGroup class="d-flex gap-3" @bind-Value="Preference">
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="pref-enjoyment" Value="@PreferenceChoice.Enjoyment" />
+                    <label class="form-check-label" for="pref-enjoyment">Enjoyment</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio class="form-check-input" id="pref-optimisation" Value="@PreferenceChoice.Optimisation" />
+                    <label class="form-check-label" for="pref-optimisation">Optimisation</label>
+                </div>
+            </InputRadioGroup>
+
+            @* SUBMIT BUTTON *@
+            @* Previously the commented @onclick was inside the tag and nested quotes broke attribute parsing. Keep comment above. *@
+            @* @onclick="GenerateWorkoutSplit" *@
+            <div class="text-center">
+                <button class="@($"btn btn-success btn-lg {(IsFormIncomplete ? "disabled" : "")}")"
+                        disabled="@IsFormIncomplete"
+                        aria-disabled="@(IsFormIncomplete.ToString().ToLowerInvariant())">
+                    Generate Workout Split
+                </button>
+            </div>
+        </div>
+        </div>
+</div>
+
+@code {
+
+    private string Experience;
+    private string MuscleGroups;
+
+    private TrainingFrequency? FrequencyPerWeek = null;
+
+    private enum TrainingFrequency
+    {
+        one = 1,
+        two,
+        three,
+        four,
+        five,
+        six,
+        seven
+    }
+
+    private enum PreferenceChoice
+    {
+        Enjoyment,
+        Optimisation
+    }
+
+    // Default to Optimisation
+    private PreferenceChoice? Preference { get; set; } = PreferenceChoice.Optimisation;
+
+    private bool IsEnjoymentOn => Preference == PreferenceChoice.Enjoyment;
+    private bool IsOptimisationOn => Preference == PreferenceChoice.Optimisation;
+
+    private bool IsFormIncomplete => String.IsNullOrEmpty(Preference.ToString()) ||
+                                     String.IsNullOrEmpty(FrequencyPerWeek.ToString()) ||
+                                     String.IsNullOrEmpty(Experience) ||
+                                     String.IsNullOrEmpty(MuscleGroups);
+}
