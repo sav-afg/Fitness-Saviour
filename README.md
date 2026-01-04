@@ -39,4 +39,4 @@ Motivations:
 Fitness related (hobby)
 Gain experience with full-stack development
 
-
+For full Development Documentation check out the Application Development Screenshots document.
