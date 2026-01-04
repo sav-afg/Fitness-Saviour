@@ -161,14 +161,15 @@
             </div>
         </div>
 
-
+        <hr />
     <div>
-        <div class="row">
+        <div class="row text-center">
             <div>
                 <p>Not sure where to start? Try out our questionnaires:</p>
                 <div class="d-sm-flex justify-content-between">
                     <button type="button" class="btn btn-primary" @onclick="NavToDietQuestionnaire">Diet Advice</button>
                     <button type="button" class="btn btn-primary" @onclick="NavToExerciseQuestionnaire">Exercise advice</button>
+                <button type="button" class="btn btn-primary" @onclick="NavToWorkoutSplitGenerator">Workout Split Generator</button>
                 </div>
             </div>
         </div>
@@ -210,6 +211,12 @@
     {
         NavigationManager.NavigateTo("dietquestionnaire");
     }
+
+    private void NavToWorkoutSplitGenerator()
+    {
+        NavigationManager.NavigateTo("workoutsplitgenerator");
+    }
+
     #endregion
 
 

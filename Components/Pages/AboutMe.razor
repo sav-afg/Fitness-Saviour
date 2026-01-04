@@ -1,0 +1,168 @@
+﻿@page "/aboutme"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+@* 
+PSEUDOCODE (detailed plan):
+1. Page header with title, Back button and Download Resume action.
+2. Responsive two-column layout:
+   - Left column: profile card with image, name, title, location, short summary, social/contact links.
+   - Right column: sections for About, Skills (badges), Experience (list), Education (list).
+3. Provide placeholder data models and sample data:
+   - ProfileModel: Name, Title, Location, PictureUrl, Summary, About, Email, GitHub, LinkedIn.
+   - ExperienceModel: Role, Company, Period, Description.
+   - EducationModel: Degree, School, Years.
+   - Skills: list of strings.
+4. Implement NavigateBack() to return to home (NavigationManager.NavigateTo("/")).
+6. Keep markup accessible and use Bootstrap utility classes for layout and spacing.
+*@
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="text-center m-0">About Me</h3>
+    <div>
+      <button class="btn btn-outline-secondary btn-sm me-2" @onclick="NavigateBack" aria-label="Go back">Back</button>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    @* Left: Profile Card  *@
+    <div class="col-12 col-md-4">   
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h4 class="mb-0">@Profile.Name</h4>
+          <div class="text-muted mb-1">@Profile.Title</div>
+          <div class="text-muted small mb-2">@Profile.Location</div>
+          <p class="mb-2">@Profile.Summary</p>
+          <div class="d-flex justify-content-center gap-2 flex-wrap">
+            @if (!string.IsNullOrWhiteSpace(Profile.GitHub))
+            {
+              <a class="btn btn-outline-dark btn-sm" href="@Profile.GitHub" target="_blank" rel="noopener">GitHub</a>
+            }
+
+            <a class="btn btn-outline-success btn-sm" href="mailto:@Profile.Email">Email</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    @* Right: Details *@
+    <div class="col-12 col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <section class="mb-3">
+            <h5>About</h5>
+            <p class="mb-0">@Profile.About</p>
+          </section>
+
+          <section class="mb-3">
+            <h5>Skills</h5>
+            <div class="mb-2">
+              @foreach (var skill in Skills)
+              {
+                <span class="badge bg-secondary me-1 mb-1">@skill</span>
+              }
+            </div>
+          </section>
+
+          <section>
+            <h5>Education</h5>
+            <ul class="list-unstyled mb-0">
+              @foreach (var edu in Educations)
+              {
+                <li class="mb-2">
+                        <strong>@edu.Qualification</strong>
+                  <div class="text-muted small">@edu.School • @edu.Years</div>
+                </li>
+              }
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@code {
+
+
+    // Property to hold the profile data. Uses nullable type to indicate it might not be initialised.
+    private ProfileModel? Profile { get; set; }
+
+    // Lifecycle method that runs when the component is initialised
+    protected override void OnInitialized()
+    {
+
+        // Only creates a new ProfileModel if Profile is currently null
+        Profile ??= new ProfileModel
+        {
+            Name = "Savero Hakimzada",
+            Title = "Software Developer",
+            Location = "Middlesbrough, UK",
+            Summary = "Aspiring .NET Fullstack Developer",
+            About = "I am a college student who developed this website as part of my computer science coursework. I spend most of my free time working on C# and web development skills, building projects just like this one. Check out my github for other projects im working on. Please email me if you have any concerns/suggestions about Fitness Saviour.",
+            Email = "s_hakimzada@hotmail.com",
+            GitHub = "https://github.com/sav-afg",
+        };
+       //The Profile property is now initialised with this sample data
+    }
+
+    private List<string> Skills { get; set; } = new()
+{
+    "C#",      // Primary programming language
+    "Blazor",  // Web framework used for this project
+    "HTML",    
+    "CSS",     
+    "SQL"      
+};
+
+
+    private List<EducationModel> Educations { get; set; } = new()
+{
+    new EducationModel
+    {
+        Qualification = "A level Physics, Maths, Computer science (A*s expected)",
+        School = "Bede Sixth Form College",
+        Years = "2024 – 2026"  
+    }
+};
+
+    // Event handler method for navigating back to the home page
+    // triggered by a "Back" button click
+    private void NavigateBack()
+    {
+        // Simple navigation back to home page
+        NavigationManager.NavigateTo("/");
+    }
+
+
+    // DATA MODELS 
+
+    // ProfileModel: Represents the main profile information
+    // Sealed: Prevents inheritance from this class (performance/security optimization)
+    // Record: Immutable data type (compiler generates equality members automatically)
+    private sealed record ProfileModel
+    {
+        // Required modifier: This property must be set during object initialisation
+        public required string Name { get; init; }
+
+        // Optional properties (nullable strings) - can be omitted during initialisation
+        public string? Title { get; init; }
+        public string? Location { get; init; }
+        public string? Summary { get; init; }
+        public string? About { get; init; }
+        public string? Email { get; init; }
+        public string? GitHub { get; init; }
+        // Note: All properties are init-only - can only be set during object initialisation
+    }
+
+    // EducationModel: Represents education history entries
+    // Also a sealed record for immutability and value-based equality
+    private sealed record EducationModel
+    {
+        public string? Qualification { get; init; }  
+        public string? School { get; init; }        
+        public string? Years { get; init; }         
+    }
+    }

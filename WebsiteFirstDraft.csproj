@@ -9,6 +9,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\FieldValidators\**" />
+    <Content Remove="Data\FieldValidators\**" />
+    <EmbeddedResource Remove="Data\FieldValidators\**" />
+    <None Remove="Data\FieldValidators\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\CommonFieldValidatorFunctions.cs" />
+    <Compile Remove="Data\CommonRegularExpressionValidationPatterns.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="Components\Pages\PopupModal.razor" />
     <Content Remove="wwwroot\bootstrap\js\FoodLogging.css" />
     <Content Remove="wwwroot\customcsspages\FoodLogging.css" />

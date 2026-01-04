@@ -29,6 +29,9 @@ namespace WebsiteFirstDraft
             builder.Services.AddScoped<UserSession>();
             builder.Services.AddSingleton<UISettingsService>();
 
+            builder.Services.AddScoped<WorkoutSplitGeneratorState>();
+
+
             //builder.Services.AddSyncfusionBlazor();
             builder.Services.AddBootstrapBlazor();
             builder.Services.AddBlazorBootstrap();

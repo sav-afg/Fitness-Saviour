@@ -110,6 +110,7 @@
             @* @onclick="GenerateWorkoutSplit" *@
             <div class="text-center">
                 <button class="@($"btn btn-success btn-lg {(IsFormIncomplete ? "disabled" : "")}")"
+                @onclick="GenerateWorkoutSplitList"
                         disabled="@IsFormIncomplete"
                         aria-disabled="@(IsFormIncomplete.ToString().ToLowerInvariant())">
                     Generate Workout Split
@@ -153,4 +154,15 @@
                                      String.IsNullOrEmpty(FrequencyPerWeek.ToString()) ||
                                      String.IsNullOrEmpty(Experience) ||
                                      String.IsNullOrEmpty(MuscleGroups);
+
+    private void GenerateWorkoutSplitList()
+    {
+        // Guard to ensure we don't navigate when form is incomplete
+        if (IsFormIncomplete)
+        {
+            return;
+        }
+
+        NavigationManager.NavigateTo("workoutsplitresults");
+    }
 }

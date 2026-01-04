@@ -66,6 +66,7 @@
     private RegistermyUser registermyUser = new();
     private bool success;
 
+    // Handle form submission
     private async Task RegisterUser()
     {
         // Encrypt email and phone before storing
@@ -89,6 +90,7 @@
         NavigationManager.NavigateTo("accountdetails");
     }
 
+    // DTO for form binding
     public class RegistermyUser
     {
         [Required]
@@ -115,6 +117,7 @@
 
             var keyBytes = GetKeyBytes(config);
 
+            // Create AES instance
             using var aes = Aes.Create();
             aes.Key = keyBytes;
             aes.Mode = CipherMode.CBC;
@@ -140,6 +143,8 @@
         {
             // Look for configured key; fall back to a development default.
             var keyString = config["Encryption:Key"] ?? config["EncryptionKey"] ?? "429496729";
+
+            // Derive a 32-byte key using SHA256
             using var sha = SHA256.Create();
             return sha.ComputeHash(Encoding.UTF8.GetBytes(keyString));
         }

@@ -1,0 +1,213 @@
+﻿@page "/workoutsplitresults"
+@using WebsiteFirstDraft.Data.Models
+@rendermode InteractiveServer
+@inject WorkoutSplitGeneratorState WorkoutSplitState
+
+<div class="container mt-5">
+
+    @* PAGE TITLE *@
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Your Personalised Exercise Recommendations</h2>
+        <p class="text-muted">
+            The exercise types below are ranked from most to least suitable based on your answers.
+        </p>
+    </div>
+
+    @* EXERCISE LIST *@
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            @foreach (var workoutsplit in GradedWorkoutSplits)
+            {
+                <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+
+                    @* EXERCISE NAME WITH HOVER *@
+                    <span class="fw-semibold"
+                          data-bs-toggle="tooltip"
+                          title="@workoutsplit.Description">
+                        @workoutsplit.Name
+                    </span>
+
+                    @if (IsInfoDisplayed)
+                    {
+                        <span class="link-info">
+                            <a href="@workoutsplit.Link">@workoutsplit.Link</a>
+                        </span>
+                    }
+
+                    @* GRADE *@
+                    <span class="@workoutsplit.ColourClass">
+                        @workoutsplit.Grade
+                    </span>
+                </div>
+            }
+
+        </div>
+    </div>
+    </div>
+<br />
+
+<div class="d-sm-flex justify-content-around">
+    <button class="btn btn-success" @onclick="ShowInfo">Add Links</button>
+    <button class="btn btn-danger" @onclick="HideInfo">Remove Links</button>
+</div>
+
+
+
+@code 
+{
+    private class WorkoutSplit
+    {
+        public string Name { get; set; } = "";
+        public int Score { get; set; }
+        public string Grade { get; set; } = "";
+        public string Description { get; set; } = "";
+
+        public string BestMuscleGroups { get; set; } = "";
+        public string Difficulty { get; set; } = "";
+        public byte Preference { get; set; }
+        public byte Frequency { get; set; }
+
+        public string ColourClass { get; set; } = "";
+        public string Link { get; set; } = "";
+    }
+
+    //Generates a new list of graded workout splits
+    private List<WorkoutSplit> GradedWorkoutSplits = new();
+
+    // Calls the method that generates workout splits when initialized
+    protected override void OnInitialized() => GenerateGradedWorkoutSplitList();
+
+    private List<WorkoutSplit> GetAllWorkoutSplits()
+    {
+        return new List<WorkoutSplit>
+        {
+            new WorkoutSplit
+            {
+                Name = "Bro Split",
+                Description = "Train 1 body part with high frequency once a week",
+                BestMuscleGroups = "Upper",
+                Difficulty = "Beginner",
+                Preference = 0,
+                Frequency = 6,
+                Link = "https://sweat.com/blogs/fitness/bro-split"
+            },
+            new WorkoutSplit
+            {
+                Name = "Upper-Lower",
+                Description = "Train upper body one day, lower body the next.",
+                BestMuscleGroups = "All",
+                Difficulty = "Intermediate",
+                Preference = 1,
+                Frequency = 4,
+                Link = "https://bulkandstrength.com/upper-lower-split-explained/"
+            },
+            new WorkoutSplit
+            {
+                Name = "Push-Pull-Legs",
+                Description = "Train push muscles 1 day, pull the next, and finally legs.",
+                BestMuscleGroups = "Upper",
+                Difficulty = "Beginner",
+                Preference = 0,
+                Frequency = 6,
+                Link = "https://learn.athleanx.com/articles/push-pull-legs-routine-the-complete-guide"
+            },
+            new WorkoutSplit
+            {
+                Name = "Full Body",
+                Description = "Train a bit of everything everyday you go",
+                BestMuscleGroups = "All",
+                Difficulty = "Advanced",
+                Preference = 1,
+                Frequency = 2,
+                Link = "https://www.planetfitness.com/blog/articles/full-body-workout-ultimate-guide"
+            },
+            new WorkoutSplit
+            {
+                Name = "Anterior-Posterior",
+                Description = "Train anterior one day, posterior the next",
+                BestMuscleGroups = "Lower",
+                Difficulty = "Advanced",
+                Preference = 1,
+                Frequency = 4,
+                Link = "https://www.a4fitness.com/anterior-posterior-workout-split/?expand_article=1"
+            },
+            new WorkoutSplit
+            {
+                Name = "Arnold Split",
+                Description = "A PPL hybrid where chest and biceps are paired, alongisde back and triceps.",
+                BestMuscleGroups = "Upper",
+                Difficulty = "Intermediate",
+                Preference = 0,
+                Frequency = 6,
+                Link = "https://www.endomondo.com/workouts/arnold-split"
+            }
+        };
+
+
+    }
+
+    private void GenerateGradedWorkoutSplitList()
+    {
+        var workouts = GetAllWorkoutSplits();
+
+        foreach (var w in workouts)
+        {
+            w.Score = 5;
+
+            // Matching muscle groups adds significant score
+            if (String.Equals(w.BestMuscleGroups, WorkoutSplitState.MuscleGroups, StringComparison.OrdinalIgnoreCase))
+                w.Score += 15;
+
+            // Mismatched muscle groups penalised 
+            if (String.Equals(w.Difficulty, WorkoutSplitState.Experience, StringComparison.OrdinalIgnoreCase))
+                w.Score += 4;
+
+            // Penalise advanced workouts for beginners
+            if (String.Equals(WorkoutSplitState.Experience, "Beginner", StringComparison.OrdinalIgnoreCase) &&
+                String.Equals(w.Difficulty, "Advanced", StringComparison.OrdinalIgnoreCase))
+                w.Score -= 4;
+
+            // Preference matching adds moderate score
+            if (w.Preference == WorkoutSplitState.Preference)
+                w.Score += 5;
+            else
+                w.Score -= 5;
+
+            // Frequency matching adds moderate score
+            if (WorkoutSplitState.FrequencyPerWeekValue == w.Frequency)
+                w.Score += 5;
+
+        }
+
+        GradedWorkoutSplits = workouts
+            .OrderByDescending(e => e.Score)
+            .ToList();
+
+        foreach (var workoutsplit in GradedWorkoutSplits)
+        {
+            workoutsplit.Grade = workoutsplit.Score switch
+            {
+                >= 8 => "A",
+                >= 5 => "B",
+                >= 2 => "C",
+                >= 0 => "D",
+                _ => "E"
+            };
+
+            workoutsplit.ColourClass = workoutsplit.Score switch
+            {
+                >= 8 => "badge bg-success fs-6",
+                >= 5 => "badge bg-success fs-6",
+                >= 2 => "badge bg-warning fs-6",
+                >= 0 => "badge bg-warning fs-6",
+                _ => "badge bg-danger fs-6"
+            };
+        }
+    }
+
+    private bool IsInfoDisplayed;
+
+    private void ShowInfo() => IsInfoDisplayed = true;
+    private void HideInfo() => IsInfoDisplayed = false;
+}
