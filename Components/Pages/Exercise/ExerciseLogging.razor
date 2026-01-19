@@ -15,24 +15,54 @@
 <p class="blockquote text-center">Here you can search for exercises from our database and add/remove entries</p>
 
 
-<div class="container-fluid">
-    <div class="row d-flex align-items-stretch">
+@* <div class="container-fluid">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <!-- Search Input with Clear Button -->
+                <div class="col-md-10 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text bg-primary text-white">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" 
+                               class="form-control form-control-lg" 
+                               placeholder="Search for exercises (e.g., Running, Yoga, Cycling...)" 
+                               @bind="searchText"
+                               @bind:event="oninput"
+                               @onkeyup="HandleEnterKey" />
+                        @if (!string.IsNullOrWhiteSpace(searchText))
+                        {
+                            <button class="btn btn-outline-secondary"
+                                    type="button"
+                                    @onclick="ClearSearch">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
 
-        <!-- Textarea column -->
-        <div class="col-sm-10 d-flex">
-
-            <textarea class="form-control w-100" style="resize:none; min-height:70px;"
-                      placeholder="Search for Exercise from Database"></textarea>
-
+                <!-- Search Button -->
+                <div class="col-md-2 col-12">
+                    <button type="button" 
+                            class="btn btn-primary btn-lg w-100" 
+                            @onclick="Search"
+                            disabled="@string.IsNullOrWhiteSpace(searchText)">
+                        <i class="bi bi-search me-2"></i>
+                        Search
+                    </button>
+                </div>
+            </div>
         </div>
-
-        <!-- Button column -->
-        <div class="col-sm-2 d-flex">
-            <button type="button" class="btn btn-secondary" @onclick="NavToHypertrophy">Hypertrophy page</button>
-        </div>
-
     </div>
-</div>
+</div> *@
+
+@*Uses the search bar razor component*@
+<SearchBar @bind-SearchText="searchText"
+           Placeholder="Search for exercises (e.g., Running, Yoga, Cycling...)"
+           OnSearch="Search"
+           OnClear="ClearSearch"
+           IsSearching="false" />
 
 <hr />
 <div class="container-fluid">
@@ -51,6 +81,31 @@
                 </tr>
             </thead>
             <tbody>
+                @*If the user has searched for an exercise, only relevant results will be displayed*@
+                @foreach (var exerciseType in myresults)
+                {
+                    <tr>
+                        <td>
+                            <input @bind="exerciseType.ExerciseTypes" />
+                        </td>
+                        <td>
+                            <input @bind="exerciseType.ExerciseNames" />
+                        </td>
+                        <td>
+                            <input @bind="exerciseType.CaloriesBurnedPerMinute" />
+                        </td>
+                        <td>
+                            <input @bind="exerciseType.IntensityLevel" class=@IntensityColour(exerciseType) />
+                        </td>
+                        <td>
+                            <Button Color="ButtonColor.Success" @onclick="() => Update(exerciseType)">Save</Button>
+                            <Button Color="ButtonColor.Danger" @onclick="() => Delete(exerciseType.Id)">Delete</Button>
+                            <Button Color="ButtonColor.Primary" @onclick="() => OpenPopup(exerciseType)">Log Exercise</Button>
+                        </td>
+                    </tr>
+                }
+                @*If the user hasnt searched for anything, all results will be displayed*@
+                @if(myresults.Count == 0)
                 @foreach (var exerciseType in exercise_types)
                 {
                     <tr>
@@ -134,67 +189,8 @@
                 <p>@errorMessage</p>
             }
         </Popup>
-
-@*         <div class="col-sm-10 d-flex">
-            <ul class="list-group w-100">
-                <li class="list-group-item">An item</li>
-                <li class="list-group-item">A second item</li>
-                <li class="list-group-item">A third item</li>
-                <li class="list-group-item">A fourth item</li>
-                <li class="list-group-item">And a fifth one</li>
-            </ul>
-        </div> *@
-
-        @*No longer needed*@
-@*         <div class="col-sm-2 d-flex flex-column">
-
-            <div class="flex-grow-1 mb-2">
-                <div class="form-control d-flex justify-content-center align-items-center h-100">
-                    Exercise Grade: A
-                </div>
-            </div>
-
-            <div class="flex-grow-3 mb-2">
-                <textarea class="form-control w-100 h-100"
-                          placeholder="Input Exercise Duration"></textarea>
-            </div>
-
-            <div class="flex-grow-1 d-flex">
-                <button type="button" class="btn btn-primary w-100 h-100">
-                    Enter
-                </button>
-            </div>
-
-        </div> *@
-
     </div>
 </div>
 
 
-
-@* No longer needed  *@
-@* <label>Manual Entry</label>
-<div class="form-floating textbox">
-    <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
-    <label for="floatingTextarea">Exercise</label>
-</div>
-
-<div class="form-floating textbox">
-    <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
-    <label for="floatingTextarea">Duration</label>
-</div>
-
-<div class="form-floating textbox">
-    <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
-    <label for="floatingTextarea">Calories</label>
-</div> *@
-
-
-@*Wraps the enter and the dieting advice button onto the same row using the appropriate
-    bootstrap class.
-*@
-@* <div class="d-sm-flex justify-content-between">
-    <button type="button" class="btn btn-secondary">Enter</button>
-    <button type="button" class="btn btn-info" @onclick="NavToExerciseQuestionnaire">Exercise advice</button>
-</div> *@
 

@@ -1,4 +1,5 @@
 ﻿using BootstrapBlazor.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using Plotly.NET;
 using System;
@@ -12,15 +13,6 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
 {
     public partial class ExerciseLogging
     {
-        private void NavToHypertrophy()
-        {
-            NavigationManager.NavigateTo("hypertrophy");
-        }
-
-        private void NavToExerciseQuestionnaire()
-        {
-            NavigationManager.NavigateTo("exercisequestionnaire");
-        }
 
         // Holds all ExerciseType records currently displayed in the UI
         // This list is typically bound to a table or list in the Razor markup
@@ -35,7 +27,7 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
             // Called once when the component is first initialised
             // Loads all ExerciseTypes from the database into memory
             // so they can be displayed in the UI
-            exercise_types = Db.exercise_types.ToList();
+            exercise_types = [.. Db.exercise_types];
         }
 
         void Create()
@@ -107,9 +99,7 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
             // Queries the database for exercise types where
             // the ExerciseNames field contains the search text
             // and stores the results in myresults
-            myresults = Db.exercise_types
-                .Where(e => e.ExerciseNames.Contains(searchText))
-                .ToList();
+            myresults = [.. Db.exercise_types.Where(e => e.ExerciseNames.Contains(searchText))];
         }
 
         // Method that will set the input class as a certain colour based off the value inside the cell
@@ -254,6 +244,15 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
                 errorMessage = $"Error linking exercise: {ex.Message}";
             }
         }
+
+        // Clears the search input and results
+        private void ClearSearch()
+        {
+            searchText = string.Empty;
+            myresults.Clear();
+        }
+
+
     }
 
 

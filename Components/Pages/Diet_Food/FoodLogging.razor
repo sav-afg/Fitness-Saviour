@@ -15,7 +15,7 @@
 <p class="blockquote text-center">Welcome to the Food Logging Page</p>
 <p class="blockquote text-center">Here you can search for food items from our database and add/remove entries</p>
 
-<div class="container-fluid">
+@* <div class="container-fluid">
     <div class="row d-flex align-items-stretch">
 
         <!-- Textarea column -->
@@ -32,7 +32,13 @@
         </div>
 
     </div>
-</div>
+</div> *@
+
+<SearchBar @bind-SearchText="searchText"
+           Placeholder="Search for food items (e.g., Chicken, Rice, Banana...)"
+           OnSearch="Search"
+           OnClear="ClearSearch"
+           IsSearching="false" />
 <hr />
 @*Food item table loaded from the SQL server database with CRUD options*@
 <div class="container-fluid">
@@ -51,11 +57,12 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var foodType in Food_items)
+                @* Display search results if available, otherwise show all items *@
+                @foreach (var foodType in (myresults.Count > 0 ? myresults : Food_items))
                 {
                     <tr>
                         <td>
-                            <input @bind="foodType.Food_Type"/>
+                            <input @bind="foodType.Food_Type" />
                         </td>
                         <td>
                             <input @bind="foodType.Food_Name" />
@@ -79,18 +86,26 @@
                         </td>
                     </tr>
                 }
+
+                @* Add new food row *@
                 <tr>
                     <td>
-                        <input />
+                        <input @bind="newFoodType.Food_Type" />
                     </td>
                     <td>
-                        <input  />
+                        <input @bind="newFoodType.Food_Name" />
                     </td>
                     <td>
-                        <input  />
+                        <input @bind="newFoodType.Calories_Per_Gram" />
                     </td>
                     <td>
-                        <input  />
+                        <input @bind="newFoodType.Carbs_Per_Gram" />
+                    </td>
+                    <td>
+                        <input @bind="newFoodType.Protein_Per_Gram" />
+                    </td>
+                    <td>
+                        <input @bind="newFoodType.Fat_Per_Gram" />
                     </td>
                     <td>
                         <button type="button" @onclick="() => Create()">Add</button>
@@ -231,12 +246,10 @@
 
     void Search()
     {
-        // Queries the database for food types where
-        // the food names field contains the search text
+        // Queries the database for exercise types where
+        // the Food names field contains the search text
         // and stores the results in myresults
-        myresults = Db.Food_items
-            .Where(e => e.Food_Name.Contains(searchText))
-            .ToList();
+        myresults = [.. Db.Food_items.Where(e => e.Food_Name.Contains(searchText))];
     }
 
 
@@ -397,5 +410,12 @@
             System.Console.WriteLine($"Error in LogUserFoodItem: {ex.Message}");
             errorMessage = $"Error linking food item: {ex.Message}";
         }
+    }
+
+    // Clears the search input and results
+    private void ClearSearch()
+    {
+        searchText = string.Empty;
+        myresults.Clear();
     }
 }

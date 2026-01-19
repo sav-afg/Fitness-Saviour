@@ -1,0 +1,133 @@
+﻿@* Reusable Search Bar Component with Clear functionality *@
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <!-- Search Input with Clear Button -->
+            <div class="col-md-10 col-12">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text"
+                           class="form-control"
+                           placeholder="@Placeholder"
+                           @bind="SearchText"
+                           @bind:event="oninput"
+                           @onkeyup="HandleKeyPress" />
+                    @if (!string.IsNullOrWhiteSpace(SearchText))
+                    {
+                        <button class="btn btn-outline-secondary"
+                                type="button"
+                                @onclick="HandleClear"
+                                title="Clear search">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Search Button -->
+            <div class="col-md-2 col-12">
+                <button type="button"
+                        class="btn btn-primary btn-lg w-100"
+                        @onclick="HandleSearch"
+                        disabled="@(string.IsNullOrWhiteSpace(SearchText) || IsSearching)"
+                        style="height: 48px;">
+                    @if (IsSearching)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        <span>Searching...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-search me-2"></i>
+                        <span>Search</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string searchText = string.Empty;
+
+    /// <summary>
+    /// The current search text value
+    /// </summary>
+    [Parameter]
+    public string SearchText
+    {
+        get => searchText;
+        set
+        {
+            if (searchText != value)
+            {
+                searchText = value;
+                SearchTextChanged.InvokeAsync(value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Event callback fired when search text changes
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> SearchTextChanged { get; set; }
+
+    /// <summary>
+    /// Placeholder text for the search input
+    /// </summary>
+    [Parameter]
+    public string Placeholder { get; set; } = "Search...";
+
+    /// <summary>
+    /// Event callback fired when the search button is clicked or Enter is pressed
+    /// </summary>
+    [Parameter]
+    public EventCallback OnSearch { get; set; }
+
+    /// <summary>
+    /// Event callback fired when the clear button is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClear { get; set; }
+
+    /// <summary>
+    /// Indicates if a search operation is in progress (shows loading spinner)
+    /// </summary>
+    [Parameter]
+    public bool IsSearching { get; set; }
+
+    /// <summary>
+    /// Handles the search button click
+    /// </summary>
+    private async Task HandleSearch()
+    {
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            await OnSearch.InvokeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Handles the clear button click
+    /// </summary>
+    private async Task HandleClear()
+    {
+        SearchText = string.Empty;
+        await OnClear.InvokeAsync();
+    }
+
+    /// <summary>
+    /// Handles keyboard events - triggers search on Enter key
+    /// </summary>
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !String.IsNullOrWhiteSpace(SearchText))
+        {
+            await HandleSearch();
+        }
+    }
+}
