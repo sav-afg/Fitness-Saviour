@@ -5,6 +5,7 @@
 @inject MaintenanceCalorieCalculator Calc
 @inject UserSessionService Session
 @inject AppDbContext Db
+@using WebsiteFirstDraft.Data.DatabaseTableModels
 
 @using Microsoft.AspNetCore.Components.Forms
 
@@ -244,6 +245,15 @@
         {
             user.Maintenance_Calories = (int)tdee;
             user.Body_Weight = (int)Calc.WeightKg;
+
+            // Log weight entry
+            Db.Weight_Logs.Add(new WeightLog
+            {
+                UserId = user.User_id,
+                Weight = (int)Calc.WeightKg,
+                LogDate = DateTime.Now
+            });
+
             Db.SaveChanges();
         }
 

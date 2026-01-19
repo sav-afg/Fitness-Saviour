@@ -12,13 +12,10 @@ namespace WebsiteFirstDraft.Data.DatabaseTableModels
         public int UserId { get; set; }
 
         [Required]
-        public DateTime LogDate { get; set; }
+        public DateTime LogDate { get; set; } = DateTime.Now;
 
         [Required]
         public double Weight { get; set; }
-
-        // Navigation property
-        public required User User { get; set; }
     }
 }
 

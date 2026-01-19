@@ -1,4 +1,5 @@
 ﻿using BlazorBootstrap;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.FSharp.Core;
 
 namespace WebsiteFirstDraft.Components.Pages
@@ -30,7 +31,9 @@ namespace WebsiteFirstDraft.Components.Pages
             ExerciseTypeFrequency,
         }
 
-        
+
+        string errorMessage = String.Empty;
+
         // Reference to the chart component instance (initialised later)
         private LineChart? lineChart = default!;
         private BarChart? barChart = default!;
@@ -85,7 +88,7 @@ namespace WebsiteFirstDraft.Components.Pages
 
         private async Task OnGraphSelected()
         {
-            InitializeSelectedGraph();
+            await InitializeSelectedGraph();
             isGraphLoaded = true; // ✅ Mark graph as loaded
             StateHasChanged();
             
@@ -94,7 +97,7 @@ namespace WebsiteFirstDraft.Components.Pages
             await UpdateChart();
         }
 
-        private void InitializeSelectedGraph()
+        private async Task InitializeSelectedGraph()
         {
             // Reset counters
             labelsCount = 0;
@@ -103,7 +106,7 @@ namespace WebsiteFirstDraft.Components.Pages
             switch (selectedGraph)
             {
                 case 0:
-                    InitialiseBodyweightOverTimeGraph();
+                    await InitialiseBodyweightOverTimeGraph();
                     break;
                 case 1:
                     InitialiseWeightChangePerWeekGraph();
@@ -215,23 +218,134 @@ namespace WebsiteFirstDraft.Components.Pages
             };
         }
 
-        private void InitialiseBodyweightOverTimeGraph()
+        private async Task InitialiseBodyweightOverTimeGraph()
         {
-            chartData = new ChartData { Labels = GetDefaultDataLabels(6, "Day"), Datasets = GetDefaultDataSets(1, false, "Body Weight (kg)", true, 0, 200) };
+            try
+            {
+                // Query real data from database
+                var user = await Db.Users
+                    .FirstOrDefaultAsync(u => u.Username == Session.UserSession.Username);
 
-            lineChartOptions = new()
+                if (user == null)
+                {
+                    errorMessage = "User not found. Please log in.";
+                    // Initialize with empty/default data to prevent null reference
+                    InitializeEmptyLineChart("Body Weight (kg)");
+                    return;
+                }
+
+                // Get historical weight data
+                var weightLogs = await Db.Weight_Logs
+                    .Where(w => w.UserId == user.User_id)
+                    .GroupBy(w => w.LogDate.Date)
+
+                    // Ensures only 1 log per day is selected, the latest one
+                    .Select(g => new 
+                    { 
+                        LogDate = g.Key,
+                        g.OrderByDescending(x => x.LogDate).First().Weight 
+                    })
+
+                    .OrderBy(w => w.LogDate)
+                    .Take(30)  // Last 30 days
+                    .ToListAsync();
+
+                // Check if we have any data
+                if (weightLogs == null || weightLogs.Count == 0)
+                {
+                    errorMessage = "No weight data available. Start logging your weight to see trends!";
+                    // Initialize with empty/default data
+                    InitializeEmptyLineChart("Body Weight (kg)");
+                    return;
+                }
+
+                // Extract data safely
+                var labels = weightLogs.Select(w => w.LogDate.ToString("MM/dd")).ToList();
+                var data = weightLogs.Select(w => (double?)w.Weight).ToList();
+
+                // Calculate safe min/max with fallbacks
+                var minWeight = data.Where(d => d.HasValue).Select(d => d!.Value).DefaultIfEmpty(0).Min();
+                var maxWeight = data.Where(d => d.HasValue).Select(d => d!.Value).DefaultIfEmpty(100).Max();
+
+                chartData = new ChartData
+                {
+                    Labels = labels,
+                    Datasets = new List<IChartDataset>
+                    {
+                        new LineChartDataset
+                        {
+                            Label = "Body Weight (kg)",
+                            Data = data,
+                            BackgroundColor = ColorUtility.CategoricalTwelveColors[0],
+                            BorderColor = ColorUtility.CategoricalTwelveColors[0],
+                            PointRadius = new List<double> { 5 },
+                            PointHoverRadius = new List<double> { 8 }
+                        }
+                    }
+                };
+
+                lineChartOptions = new LineChartOptions
+                {
+                    IndexAxis = "x",
+                    Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
+                    Responsive = true,
+                    Scales = new Scales
+                    {
+                        Y = new()
+                        {
+                            BeginAtZero = false,
+                            Min = Math.Max(0, minWeight - 5),
+                            Max = maxWeight + 5
+                        }
+                    }
+                };
+
+                // Clear error message on success
+                errorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error loading weight data: {ex.Message}";
+                System.Console.WriteLine($"Error in InitialiseBodyweightOverTimeGraph: {ex.Message}");
+                //Initialize with empty data to prevent crashes
+                InitializeEmptyLineChart("Body Weight (kg)");
+            }
+        }
+
+        /// <summary>
+        /// Initializes an empty line chart with default/placeholder data
+        /// </summary>
+        private void InitializeEmptyLineChart(string label)
+        {
+            chartData = new ChartData
+            {
+                Labels = new List<string> { "No Data" },
+                Datasets = new List<IChartDataset>
+                {
+                    new LineChartDataset
+                    {
+                        Label = label,
+                        Data = new List<double?> { 0 },
+                        BackgroundColor = ColorUtility.CategoricalTwelveColors[0],
+                        BorderColor = ColorUtility.CategoricalTwelveColors[0],
+                        PointRadius = new List<double> { 5 },
+                        PointHoverRadius = new List<double> { 8 }
+                    }
+                }
+            };
+
+            lineChartOptions = new LineChartOptions
             {
                 IndexAxis = "x",
                 Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
                 Responsive = true,
-
                 Scales = new Scales
                 {
                     Y = new()
                     {
-                        BeginAtZero = false,
+                        BeginAtZero = true,
                         Min = 0,
-                        Max = 200
+                        Max = 100
                     }
                 }
             };
@@ -555,52 +669,3 @@ namespace WebsiteFirstDraft.Components.Pages
         #endregion Data Preparation
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
