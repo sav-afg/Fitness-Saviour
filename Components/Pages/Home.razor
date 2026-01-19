@@ -1,11 +1,9 @@
 ﻿@page "/"
-@using WebsiteFirstDraft.Data.Models
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 @inject UISettingsService UI
 @inject UserSessionService Session
 @inject AppDbContext Db
-@using Microsoft.EntityFrameworkCore
 
 <PageTitle>HomePage</PageTitle>
 
@@ -103,19 +101,15 @@
         <!-- Columns are always 50% wide, on mobile and desktop -->
         <div class="row">
             <div class="col-6">
+            @*Use the reusable MacroPieChart component *@
+            <MacroPieChart DailyCarbs="@Session.UserSession.Daily_Carbs"
+                           DailyProtein="@Session.UserSession.Daily_Protein"
+                           DailyFat="@Session.UserSession.Daily_Fat"
+                           Width="300"
+                           Height="300"
+                           Title="Daily Macro Breakdown"
+                           EmptyMessage="No macro data available yet. Start logging your meals!" />
 
-            @* Pie chart only displays if user is logged in AND has eaten today *@
-            @if (ShouldShowPieChart())
-            {
-                @*Sets up a pie chart with a width property.*@
-                <PieChart @ref="pieChart" Width="300" Height="300" />
-            }
-            else
-            {
-                <div class="alert alert-info" role="alert">
-                    <p class="mb-0">No macro data available yet. Start logging your meals!</p>
-                </div>
-            }
 
             </div>
 

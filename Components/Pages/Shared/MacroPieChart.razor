@@ -1,0 +1,162 @@
+﻿@* Reusable Macro Pie Chart Component *@
+@using BlazorBootstrap
+@using WebsiteFirstDraft.Data.Models
+
+@if (ShowChart)
+{
+    <PieChart @ref="pieChart" Width="@Width" Height="@Height" />
+}
+else
+{
+    <div class="alert alert-info" role="alert">
+        <p class="mb-0">@EmptyMessage</p>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Reference to the PieChart component
+    /// </summary>
+    private PieChart? pieChart;
+
+    /// <summary>
+    /// Chart configuration options
+    /// </summary>
+    private PieChartOptions? pieChartOptions;
+
+    /// <summary>
+    /// Chart data (labels and datasets)
+    /// </summary>
+    private ChartData? chartData;
+
+    /// <summary>
+    /// Daily carbs value
+    /// </summary>
+    [Parameter]
+    public int DailyCarbs { get; set; }
+
+    /// <summary>
+    /// Daily protein value
+    /// </summary>
+    [Parameter]
+    public int DailyProtein { get; set; }
+
+    /// <summary>
+    /// Daily fat value
+    /// </summary>
+    [Parameter]
+    public int DailyFat { get; set; }
+
+    /// <summary>
+    /// Chart width in pixels
+    /// </summary>
+    [Parameter]
+    public int Width { get; set; } = 300;
+
+    /// <summary>
+    /// Chart height in pixels
+    /// </summary>
+    [Parameter]
+    public int Height { get; set; } = 300;
+
+    /// <summary>
+    /// Chart title
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "Daily Macro Breakdown";
+
+    /// <summary>
+    /// Message to display when no data is available
+    /// </summary>
+    [Parameter]
+    public string EmptyMessage { get; set; } = "No macro data available yet. Start logging your meals!";
+
+    /// <summary>
+    /// Determines if the chart should be shown
+    /// </summary>
+    private bool ShowChart => DailyCarbs > 0 || DailyProtein > 0 || DailyFat > 0;
+
+    protected override void OnInitialized()
+    {
+        // Initialize chart data
+        var backgroundColors = ColorUtility.CategoricalTwelveColors;
+
+        chartData = new ChartData
+        {
+            Labels = new List<string> { "Carbs", "Protein", "Fats" },
+            Datasets = new List<IChartDataset>
+            {
+                new PieChartDataset
+                {
+                    Label = "Grams",
+                    Data = new List<double?>
+                    {
+                        (double?)DailyCarbs,
+                        (double?)DailyProtein,
+                        (double?)DailyFat
+                    },
+                    BackgroundColor = new List<string>
+                    {
+                        backgroundColors[0],
+                        backgroundColors[1],
+                        backgroundColors[2]
+                    }
+                }
+            }
+        };
+
+        // Configure chart options
+        pieChartOptions = new PieChartOptions
+        {
+            Responsive = true,
+            Plugins = new PieChartPlugins
+            {
+                Title = new ChartPluginsTitle
+                {
+                    Text = Title,
+                    Display = true
+                },
+                Legend = new ChartPluginsLegend
+                {
+                    Position = "bottom"
+                }
+            }
+        };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && ShowChart && pieChart != null && chartData != null && pieChartOptions != null)
+        {
+            await pieChart.InitializeAsync(chartData, pieChartOptions);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    /// <summary>
+    /// Public method to update the chart with new data
+    /// </summary>
+    public async Task UpdateChartAsync(int carbs, int protein, int fat)
+    {
+        DailyCarbs = carbs;
+        DailyProtein = protein;
+        DailyFat = fat;
+
+        if (chartData?.Datasets?.Count > 0 && chartData.Datasets[0] is PieChartDataset dataset)
+        {
+            dataset.Data = new List<double?>
+            {
+                (double?)DailyCarbs,
+                (double?)DailyProtein,
+                (double?)DailyFat
+            };
+
+            if (ShowChart && pieChart != null && pieChartOptions != null)
+            {
+                await pieChart.UpdateAsync(chartData, pieChartOptions);
+            }
+        }
+
+        StateHasChanged();
+    }
+}

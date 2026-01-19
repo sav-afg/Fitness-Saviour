@@ -7,7 +7,6 @@ namespace WebsiteFirstDraft.Components.Pages
     public partial class Graphs
     {
         private GraphCategories? GraphCategory;
-        private GraphName? graphname;
         
         private enum GraphCategories 
         {
@@ -421,44 +420,112 @@ namespace WebsiteFirstDraft.Components.Pages
             barChartOptions.Plugins.Legend.Display = true;
         }
 
-        private void InitialiseMacroDistributionGraph()
+        private async Task InitialiseMacroDistributionGraph()
         {
-            // Define labels and datasets for the pie chart
-            var labels = new List<string> { "Carbs", "Protein", "Fats"};
-            var datasets = new List<IChartDataset>();
-
-            // Create a dataset for macro distribution
-            var dataset1 = new PieChartDataset()
+            try
             {
-                Label = "Daily Macro Intake (g)",
+                // Query real data from database
+                var user = await Db.Users
+                    .FirstOrDefaultAsync(u => u.Username == Session.UserSession.Username);
 
-                // Data representing grams of each macronutrient
-                Data = new List<double?> { 250, 180, 70 },
-                BackgroundColor = new List<string>
+                if (user == null)
                 {
-                    ColorUtility.CategoricalTwelveColors[0],
-                    ColorUtility.CategoricalTwelveColors[1],
-                    ColorUtility.CategoricalTwelveColors[2]
-                },
-                BorderColor = new List<string>
+                    errorMessage = "User not found. Please log in.";
+                    InitializeEmptyPieChart("Daily Macro Intake (g)");
+                    return;
+                }
+
+                // Check if we have any macro data
+                if (user.Daily_Carbs == 0 && user.Daily_Protein == 0 && user.Daily_Fat == 0)
                 {
-                    ColorUtility.CategoricalTwelveColors[0],
-                    ColorUtility.CategoricalTwelveColors[1],
-                    ColorUtility.CategoricalTwelveColors[2]
-                },
-                BorderWidth = new List<double> { 0 },
+                    errorMessage = "No macro data available. Start logging your meals!";
+                    InitializeEmptyPieChart("Daily Macro Intake (g)");
+                    return;
+                }
+
+                // Define labels and datasets for the pie chart
+                var labels = new List<string> { "Carbs", "Protein", "Fats" };
+                var datasets = new List<IChartDataset>();
+
+                // Create a dataset for macro distribution with REAL data
+                var dataset1 = new PieChartDataset()
+                {
+                    Label = "Daily Macro Intake (g)",
+                    Data = new List<double?>
+            {
+                (double?)user.Daily_Carbs,
+                (double?)user.Daily_Protein,
+                (double?)user.Daily_Fat
+            },
+                    BackgroundColor = new List<string>
+            {
+                ColorUtility.CategoricalTwelveColors[0],
+                ColorUtility.CategoricalTwelveColors[1],
+                ColorUtility.CategoricalTwelveColors[2]
+            },
+                    BorderColor = new List<string>
+            {
+                ColorUtility.CategoricalTwelveColors[0],
+                ColorUtility.CategoricalTwelveColors[1],
+                ColorUtility.CategoricalTwelveColors[2]
+            },
+                    BorderWidth = new List<double> { 0 },
+                };
+                datasets.Add(dataset1);
+
+                chartData = new ChartData { Labels = labels, Datasets = datasets };
+
+                pieChartOptions = new PieChartOptions();
+                pieChartOptions.Responsive = true;
+                pieChartOptions.Plugins.Title!.Text = "Daily Macro Breakdown";
+                pieChartOptions.Plugins.Title.Display = true;
+                pieChartOptions.Plugins.Legend.Position = "bottom";
+
+                errorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error loading macro data: {ex.Message}";
+                System.Console.WriteLine($"Error in InitialiseMacroDistributionGraph: {ex.Message}");
+                InitializeEmptyPieChart("Daily Macro Intake (g)");
+            }
+        }
+
+        /// <summary>
+        /// Initializes an empty pie chart with default/placeholder data
+        /// </summary>
+        private void InitializeEmptyPieChart(string label)
+        {
+            chartData = new ChartData
+            {
+                Labels = new List<string> { "No Data" },
+                Datasets = new List<IChartDataset>
+        {
+            new PieChartDataset
+            {
+                Label = label,
+                Data = new List<double?> { 1 },
+                BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] }
+            }
+        }
             };
-            datasets.Add(dataset1);
 
-
-            chartData = new ChartData { Labels = labels, Datasets = datasets };
-
-            pieChartOptions = new();
-            pieChartOptions.Responsive = true;
-            pieChartOptions.Plugins.Title!.Text = "Daily Calorie Budget Accumulator";
-            pieChartOptions.Plugins.Title.Display = true;
-
-            pieChartOptions.Plugins.Legend.Position = "bottom";
+            pieChartOptions = new PieChartOptions
+            {
+                Responsive = true,
+                Plugins = new PieChartPlugins
+                {
+                    Title = new ChartPluginsTitle
+                    {
+                        Text = label,
+                        Display = true
+                    },
+                    Legend = new ChartPluginsLegend
+                    {
+                        Position = "bottom"
+                    }
+                }
+            };
         }
 
         private void InitialiseDailyMacroIntakeGraph()
