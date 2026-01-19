@@ -28,8 +28,6 @@ namespace WebsiteFirstDraft.Components.Pages
             DailyMacroIntake,
             CaloriesBurntThroughExercise,
             ExerciseTypeFrequency,
-            //LoggingStreakoverTime,
-            //ActivityConsistency
         }
 
         

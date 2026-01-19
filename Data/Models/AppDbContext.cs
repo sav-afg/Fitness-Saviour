@@ -16,6 +16,8 @@ namespace WebsiteFirstDraft.Data.Models
         // Creates the new database table
         public DbSet<CalorieLogs> Calorie_Logs => Set<CalorieLogs>();
 
+        public DbSet<WeightLog> Weight_Logs => Set<WeightLog>();
+
         public DbSet<UserExercises> users_exercises => Set<UserExercises>();
 
         public DbSet<UserFoodItems> users_food_items => Set<UserFoodItems>();
