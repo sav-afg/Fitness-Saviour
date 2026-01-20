@@ -103,7 +103,7 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
         }
 
         // Method that will set the input class as a certain colour based off the value inside the cell
-        string IntensityColour(ExerciseType exerciseType)
+        static string IntensityColour(ExerciseType exerciseType)
         {
             return exerciseType.IntensityLevel switch
             {

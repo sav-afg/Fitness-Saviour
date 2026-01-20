@@ -124,7 +124,7 @@ namespace WebsiteFirstDraft.Components.Pages
                     await InitialiseDailyMacroIntakeGraph();
                     break;
                 case 6:
-                    InitialiseCaloriesBurntThroughExerciseGraph();
+                    await InitialiseCaloriesBurntThroughExerciseGraph();
                     break;
                 case 7:
                     InitialiseExerciseTypeFrequencyGraph();
@@ -987,28 +987,114 @@ namespace WebsiteFirstDraft.Components.Pages
             }
         }
 
-        private void InitialiseCaloriesBurntThroughExerciseGraph()
+        private async Task InitialiseCaloriesBurntThroughExerciseGraph()
         {
-            // Define labels and datasets for the line chart, data values between 0 and 1000
-            chartData = new ChartData { Labels = GetDefaultDataLabels(6, "Day"), Datasets = GetDefaultDataSets(1, false, "Calories Burnt (kcal)", true, 0, 1000) };
-
-            lineChartOptions = new()
+            try
             {
-                IndexAxis = "x",
-                Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
-                Responsive = true,
+                // Query real data from database
+                var user = await Db.Users
+                    .FirstOrDefaultAsync(u => u.Username == Session.UserSession.Username);
 
-                Scales = new Scales
+                if (user == null)
                 {
-                    Y = new()
+                    errorMessage = "User not found. Please log in.";
+                    InitializeEmptyLineChart("Calories Burnt (kcal)");
+                    return;
+                }
+
+                // Get calorie logs for the past 6 days
+                var endDate = DateTime.Today;
+                var startDate = endDate.AddDays(-5); // 6 days total including today
+
+                var exerciseLogs = await Db.Calorie_Logs
+                    .Where(c => c.User_id == user.User_id && c.Log_Date.Date >= startDate && c.Log_Date.Date <= endDate)
+                    .GroupBy(c => c.Log_Date.Date)
+                    .Select(g => new
                     {
-                        // Y-axis starts at 0 and goes up to 1000
-                        BeginAtZero = true,
-                        Min = 0,
-                        Max = 1000
+                        LogDate = g.Key,
+                        TotalCaloriesBurned = g.Sum(c => c.Calories_Burned ?? 0)
+                    })
+                    .OrderBy(c => c.LogDate)
+                    .ToListAsync();
+
+                // Create labels and data for all 6 days (including days with no logs)
+                var labels = new List<string>();
+                var caloriesBurnedData = new List<double?>();
+
+                for (int i = 0; i < 6; i++)
+                {
+                    var currentDate = startDate.AddDays(i);
+                    labels.Add(currentDate.ToString("MM/dd"));
+
+                    // Find the log for this date
+                    var logForDate = exerciseLogs.FirstOrDefault(l => l.LogDate == currentDate);
+
+                    if (logForDate != null)
+                    {
+                        caloriesBurnedData.Add((double?)logForDate.TotalCaloriesBurned);
+                    }
+                    else
+                    {
+                        caloriesBurnedData.Add(0); // No data for this day, show as 0
                     }
                 }
-            };
+
+                // Check if we have any actual data (any day with calories burned > 0)
+                if (caloriesBurnedData.All(d => d == 0))
+                {
+                    errorMessage = "No exercise data available for the past 6 days. Start logging your workouts!";
+                    InitializeEmptyLineChart("Calories Burnt (kcal)");
+                    return;
+                }
+
+                // Calculate safe max for the Y-axis
+                var maxCalories = caloriesBurnedData.Max() ?? 0;
+                var yAxisMax = Math.Max(100, Math.Ceiling(maxCalories / 100.0) * 100); // Round up to nearest 100
+
+                chartData = new ChartData
+                {
+                    Labels = labels,
+                    Datasets = new List<IChartDataset>
+                    {
+                        new LineChartDataset
+                        {
+                            Label = "Calories Burnt (kcal)",
+                            Data = caloriesBurnedData,
+                            BackgroundColor = ColorUtility.CategoricalTwelveColors[0],
+                            BorderColor = ColorUtility.CategoricalTwelveColors[0],
+                            PointRadius = new List<double> { 5 },
+                            PointHoverRadius = new List<double> { 8 },
+                            //Fill = true,
+                            //Tension = 0.3 // Smooth line
+                        }
+                    }
+                };
+
+                lineChartOptions = new LineChartOptions
+                {
+                    IndexAxis = "x",
+                    Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
+                    Responsive = true,
+                    Scales = new Scales
+                    {
+                        Y = new()
+                        {
+                            BeginAtZero = true,
+                            Min = 0,
+                            Max = yAxisMax
+                        }
+                    }
+                };
+
+                // Clear error message on success
+                errorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error loading exercise calorie data: {ex.Message}";
+                System.Console.WriteLine($"Error in InitialiseCaloriesBurntThroughExerciseGraph: {ex.Message}");
+                InitializeEmptyLineChart("Calories Burnt (kcal)");
+            }
         }
 
         private void InitialiseExerciseTypeFrequencyGraph()
