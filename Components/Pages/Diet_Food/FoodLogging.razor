@@ -393,7 +393,12 @@
                 {
                     User_id = user.User_id,
                     Calories_Consumed = (int)calories,
-                    Net_Calories = (int)calories
+                    Net_Calories = (int)calories,
+
+                    // Macros
+                Calories_From_Carbs = (int)carbs,
+                Calories_From_Protein = (int)protein,
+                Calories_From_Fats = (int)fat
                 };
 
             Db.Calorie_Logs.Add(calorieLog);

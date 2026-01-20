@@ -26,6 +26,11 @@ namespace WebsiteFirstDraft.Data.DatabaseTableModels
         
         public int Net_Calories {  get; set; }
 
+        // Nullable integers for calories from macros
+        public int? Calories_From_Carbs { get; set; }
+        public int? Calories_From_Protein { get; set; }
+        public int? Calories_From_Fats { get; set; }
+
         //// Navigation Properties
 
         //public required User User { get; set; }

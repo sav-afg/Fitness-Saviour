@@ -1,6 +1,7 @@
 ﻿using BlazorBootstrap;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FSharp.Core;
+using System.Collections;
 
 namespace WebsiteFirstDraft.Components.Pages
 {
@@ -108,19 +109,19 @@ namespace WebsiteFirstDraft.Components.Pages
                     await InitialiseBodyweightOverTimeGraph();
                     break;
                 case 1:
-                    InitialiseWeightChangePerWeekGraph();
+                    await InitialiseWeightChangePerWeekGraph();
                     break;
                 case 2:
-                    InitialiseDailyCalorieIntakeVsTargetGraph();
+                    await InitialiseDailyCalorieIntakeVsTargetGraph();
                     break;
                 case 3:
-                    InitialiseDailyCalorieSurplusorDeficitGraph();
+                    await InitialiseDailyCalorieSurplusorDeficitGraph();
                     break;
                 case 4:
-                    InitialiseMacroDistributionGraph();
+                    await InitialiseMacroDistributionGraph();
                     break;
                 case 5:
-                    InitialiseDailyMacroIntakeGraph();
+                    await InitialiseDailyMacroIntakeGraph();
                     break;
                 case 6:
                     InitialiseCaloriesBurntThroughExerciseGraph();
@@ -129,7 +130,7 @@ namespace WebsiteFirstDraft.Components.Pages
                     InitialiseExerciseTypeFrequencyGraph();
                     break;
                 default:
-                    InitialiseWeightChangePerWeekGraph();
+                    await InitialiseWeightChangePerWeekGraph();
                     break;
             }
         }
@@ -195,26 +196,153 @@ namespace WebsiteFirstDraft.Components.Pages
             }
         }
 
-        private void InitialiseWeightChangePerWeekGraph()
+        private async Task InitialiseWeightChangePerWeekGraph()
         {
-            chartData = new ChartData { Labels = GetDefaultDataLabels(6, "Week"), Datasets = GetDefaultDataSets(1, true, "Weight Change (kg)", false) };
-
-            lineChartOptions = new()
+            try
             {
-                IndexAxis = "x",
-                Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
-                Responsive = true,
+                // Query real data from database
+                var user = await Db.Users
+                    .FirstOrDefaultAsync(u => u.Username == Session.UserSession.Username);
 
-                Scales = new Scales
+                if (user == null)
                 {
-                    Y = new()
+                    errorMessage = "User not found. Please log in.";
+                    InitializeEmptyLineChart("Weight Change (kg)");
+                    return;
+                }
+
+                // Get all weight logs for the user
+                var weightLogs = await Db.Weight_Logs
+                    .Where(w => w.UserId == user.User_id)
+                    .OrderBy(w => w.LogDate)
+                    .ToListAsync();
+
+                // Check if we have any data
+                if (weightLogs.Count == 0)
+                {
+                    errorMessage = "No weight data available. Start logging your weight to see weekly trends!";
+                    InitializeEmptyLineChart("Weight Change (kg)");
+                    return;
+                }
+
+                // Number of weeks to analyze (configurable)
+                const int numberOfWeeks = 7;
+
+                // Calculate week start dates (going back from today)
+                var weeklyData = new List<(string WeekLabel, double AverageWeight)>();
+                var today = DateTime.Today;
+
+                for (int weekOffset = numberOfWeeks - 1; weekOffset >= 0; weekOffset--)
+                {
+                    // Calculate the start and end of each week
+                    var weekStart = today.AddDays(-7 * weekOffset - 6);
+                    var weekEnd = today.AddDays(-7 * weekOffset);
+
+                    // Get all weight logs within this week
+                    var logsInWeek = weightLogs
+                        .Where(w => w.LogDate.Date >= weekStart && w.LogDate.Date <= weekEnd)
+                        .ToList();
+
+                    // If there are entries for this week, calculate the mean
+                    if (logsInWeek.Count != 0)
                     {
-                        BeginAtZero = false,
-                        Min = -1,
-                        Max = 1
+                        var averageWeight = logsInWeek.Average(w => w.Weight);
+                        var weekLabel = $"Week {numberOfWeeks - weekOffset}";
+                        weeklyData.Add((weekLabel, averageWeight));
                     }
                 }
-            };
+
+                if (weeklyData.Count == 0)
+                {
+                    errorMessage = "Not enough weight data to calculate weekly changes.";
+                    InitializeEmptyLineChart("Weight Change (kg)");
+                    return;
+                }
+
+                // Calculate week-to-week changes
+                var labels = new List<string>();
+                var weightChanges = new List<double?>();
+
+
+                for (int i = 1; i < weeklyData.Count; i++)
+                {
+                    var change = weeklyData[i].AverageWeight - weeklyData[i - 1].AverageWeight;
+                    labels.Add(weeklyData[i].WeekLabel);
+                    weightChanges.Add(change);
+                }
+
+                // Handle case where we only have one week of data
+                if (weightChanges.Count == 0)
+                {
+                    errorMessage = "Need at least 2 weeks of data to show weight changes.";
+                    InitializeEmptyLineChart("Weight Change (kg)");
+                    return;
+                }
+
+                // Calculate safe min/max for the Y-axis
+                var minChange = weightChanges.Where(d => d.HasValue).Select(d => d!.Value).DefaultIfEmpty(0).Min();
+                var maxChange = weightChanges.Where(d => d.HasValue).Select(d => d!.Value).DefaultIfEmpty(0).Max();
+                var yAxisPadding = Math.Max(0.5, Math.Abs(Math.Max(Math.Abs(minChange), Math.Abs(maxChange))) * 0.2);
+
+                // Create baseline data (all zeros) matching the number of labels
+                var baselineData = new List<double?>();
+                for (int i = 0; i < labels.Count; i++)
+                {
+                    baselineData.Add(0);
+                }
+
+                chartData = new ChartData
+                {
+                    Labels = labels,
+                    Datasets =
+                    [
+                        new LineChartDataset
+                        {
+                            Label = "Weight Change (kg)",
+                            Data = weightChanges,
+                            BackgroundColor = ColorUtility.CategoricalTwelveColors[2],
+                            BorderColor = ColorUtility.CategoricalTwelveColors[2],
+                            PointRadius = [5],
+                            PointHoverRadius = [8]
+                        },
+                        new LineChartDataset
+                        {
+                            Label = "Baseline",
+                            Data = baselineData,
+                            BackgroundColor = ColorUtility.CategoricalTwelveColors[3],
+                            BorderColor = ColorUtility.CategoricalTwelveColors[3],
+                            PointRadius = [0],
+                            PointHoverRadius = [0],
+                            BorderDash = [5, 5]
+                        }
+                    ]
+                };
+
+                lineChartOptions = new LineChartOptions
+                {
+                    IndexAxis = "x",
+                    Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
+                    Responsive = true,
+                    Scales = new Scales
+                    {
+                        Y = new()
+                        {
+                            BeginAtZero = true,
+                            Min = minChange - yAxisPadding,
+                            Max = maxChange + yAxisPadding
+                        }
+                    }
+                };
+
+                // Clear error message on success
+                errorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error loading weight change data: {ex.Message}";
+                System.Console.WriteLine($"Error in InitialiseWeightChangePerWeekGraph: {ex.Message}");
+                InitializeEmptyLineChart("Weight Change (kg)");
+            }
         }
 
         private async Task InitialiseBodyweightOverTimeGraph()
@@ -246,7 +374,7 @@ namespace WebsiteFirstDraft.Components.Pages
                     })
 
                     .OrderBy(w => w.LogDate)
-                    .Take(30)  // Last 30 days
+                    .Take(7)  // Last 7 days
                     .ToListAsync();
 
                 // Check if we have any data
@@ -350,74 +478,268 @@ namespace WebsiteFirstDraft.Components.Pages
             };
         }
 
-        private void InitialiseDailyCalorieIntakeVsTargetGraph()
+        private async Task InitialiseDailyCalorieIntakeVsTargetGraph()
         {
-            chartData = new ChartData { Labels = GetDefaultDataLabels(6, "Day"), Datasets = GetDefaultDataSets(1, true, "Calories above/below Target", false) };
-
-            lineChartOptions = new()
+            try
             {
-                IndexAxis = "x",
-                Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
-                Responsive = true,
+                // Query real data from database
+                var user = await Db.Users
+                    .FirstOrDefaultAsync(u => u.Username == Session.UserSession.Username);
 
-                Scales = new Scales
+                if (user == null)
                 {
-                    Y = new()
-                    {
-                        BeginAtZero = false,
-                        Min = -1,
-                        Max = 1
-                    }
+                    errorMessage = "User not found. Please log in.";
+                    InitializeEmptyLineChart("Daily Calorie Intake");
+                    return;
                 }
-            };
+
+                // Get the user's maintenance calorie target
+                var maintenanceTarget = user.Maintenance_Calories;
+
+                if (maintenanceTarget == 0)
+                {
+                    errorMessage = "No maintenance calorie target set. Please complete the Maintenance Calories Calculator.";
+                    InitializeEmptyLineChart("Daily Calorie Intake");
+                    return;
+                }
+
+                // Get calorie logs for the past 6 days
+                var endDate = DateTime.Today;
+                var startDate = endDate.AddDays(-5); // 6 days total including today
+
+                var calorieLogs = await Db.Calorie_Logs
+
+                    // Checks Logs in the given date range
+                    .Where(c => c.User_id == user.User_id && c.Log_Date.Date >= startDate && c.Log_Date.Date <= endDate)
+                    .GroupBy(c => c.Log_Date.Date)
+                    .Select(g => new
+                    {
+                        LogDate = g.Key,
+                        TotalNetCalories = g.Sum(c => c.Net_Calories)
+                    })
+                    .OrderBy(c => c.LogDate)
+                    .ToListAsync();
+
+                // Create labels and data for all 6 days (including days with no logs)
+                var labels = new List<string>();
+                var actualIntakeData = new List<double?>();
+                var targetData = new List<double?>();
+
+                for (int i = 0; i < 6; i++)
+                {
+                    var currentDate = startDate.AddDays(i);
+                    labels.Add(currentDate.ToString("MM/dd"));
+
+                    // Find the log for this date
+                    var logForDate = calorieLogs.FirstOrDefault(l => l.LogDate == currentDate);
+                    
+                    if (logForDate != null)
+                    {
+                        actualIntakeData.Add((double?)logForDate.TotalNetCalories);
+                    }
+                    else
+                    {
+                        actualIntakeData.Add(null); // No data for this day
+                    }
+
+                    targetData.Add((double?)maintenanceTarget);
+                }
+
+                // Check if we have any actual data
+                if (actualIntakeData.All(d => !d.HasValue))
+                {
+                    errorMessage = "No calorie data available for the past 6 days. Start logging your meals!";
+                    InitializeEmptyLineChart("Daily Calorie Intake");
+                    return;
+                }
+
+                // Calculate safe min/max for the Y-axis
+                var allValues = actualIntakeData.Where(d => d.HasValue).Select(d => d!.Value).ToList();
+                allValues.Add(maintenanceTarget);
+
+                var minValue = allValues.Min();
+                var maxValue = allValues.Max();
+                var yAxisPadding = Math.Max(100, (maxValue - minValue) * 0.1);
+
+                chartData = new ChartData
+                {
+                    Labels = labels,
+                    Datasets =
+                    [
+                        new LineChartDataset
+                        {
+                            Label = "Daily Calorie Intake",
+                            Data = actualIntakeData,
+                            BackgroundColor = ColorUtility.CategoricalTwelveColors[0],
+                            BorderColor = ColorUtility.CategoricalTwelveColors[0],
+                            PointRadius = new List<double> { 5 },
+                            PointHoverRadius = new List<double> { 8 },
+                            SpanGaps = true // Connect points even when there are null values
+                        },
+                        new LineChartDataset
+                        {
+                            Label = "Maintenance Target",
+                            Data = targetData,
+                            BackgroundColor = ColorUtility.CategoricalTwelveColors[1],
+                            BorderColor = ColorUtility.CategoricalTwelveColors[1],
+                            PointRadius = new List<double> { 3 },
+                            PointHoverRadius = new List<double> { 5 },
+                            BorderDash = new List<double> { 5, 5 } // Dashed line for target
+                        }
+                    ]
+                };
+
+                lineChartOptions = new LineChartOptions
+                {
+                    IndexAxis = "x",
+                    Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
+                    Responsive = true,
+                    Scales = new Scales
+                    {
+                        Y = new()
+                        {
+                            BeginAtZero = false,
+                            Min = minValue - yAxisPadding,
+                            Max = maxValue + yAxisPadding
+                        }
+                    }
+                };
+
+                // Clear error message on success
+                errorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error loading calorie intake data: {ex.Message}";
+                System.Console.WriteLine($"Error in InitialiseDailyCalorieIntakeVsTargetGraph: {ex.Message}");
+                InitializeEmptyLineChart("Daily Calorie Intake");
+            }
         }
 
         // Graph Initialisation Method
-        private void InitialiseDailyCalorieSurplusorDeficitGraph()
+        private async Task InitialiseDailyCalorieSurplusorDeficitGraph()
         {
-            // Define labels and datasets for the bar chart
-            var labels = new List<string> { "Day 1", "Day 2", "Day 3", "Day 4", "Day 5" };
-            var datasets = new List<IChartDataset>();
-
-            // Create a dataset for daily calorie surplus/deficit
-            var dataset1 = new BarChartDataset()
+            try
             {
-                Label = "Daily Calorie Surplus/Deficit",
+                // Query real data from database
+                var user = await Db.Users
+                    .FirstOrDefaultAsync(u => u.Username == Session.UserSession.Username);
 
-                // Positive values indicate surplus, negative values indicate deficit
-                Data = new List<double?> { 250, -180, 70, -120, 310 },
-                BackgroundColor = new List<string>
+                if (user == null)
                 {
-                    ColorUtility.CategoricalTwelveColors[0],
-                    ColorUtility.CategoricalTwelveColors[1],
-                    ColorUtility.CategoricalTwelveColors[2],
-                    ColorUtility.CategoricalTwelveColors[3],
-                    ColorUtility.CategoricalTwelveColors[4]
-                },
-                BorderColor = new List<string>
+                    errorMessage = "User not found. Please log in.";
+                    InitializeEmptyBarChart("Daily Calorie Surplus/Deficit");
+                    return;
+                }
+
+                // Get the user's maintenance calorie target
+                var maintenanceTarget = user.Maintenance_Calories;
+
+                if (maintenanceTarget == 0)
                 {
-                    ColorUtility.CategoricalTwelveColors[0],
-                    ColorUtility.CategoricalTwelveColors[1],
-                    ColorUtility.CategoricalTwelveColors[2],
-                    ColorUtility.CategoricalTwelveColors[3],
-                    ColorUtility.CategoricalTwelveColors[4]
-                },
-                BorderWidth = new List<double> { 0 },
-            };
-            datasets.Add(dataset1);
+                    errorMessage = "No maintenance calorie target set. Please complete the Maintenance Calories Calculator.";
+                    InitializeEmptyBarChart("Daily Calorie Surplus/Deficit");
+                    return;
+                }
 
-            chartData = new ChartData { Labels = labels, Datasets = datasets };
+                // Get calorie logs for the past 6 days
+                var endDate = DateTime.Today;
+                var startDate = endDate.AddDays(-5); // 6 days total including today
 
-            barChartOptions = new BarChartOptions();
-            barChartOptions.Responsive = true;
-            barChartOptions.Interaction = new Interaction { Mode = InteractionMode.Index };
-            barChartOptions.IndexAxis = "x";
+                var calorieLogs = await Db.Calorie_Logs
+                    .Where(c => c.User_id == user.User_id && c.Log_Date.Date >= startDate && c.Log_Date.Date <= endDate)
+                    .GroupBy(c => c.Log_Date.Date)
+                    .Select(g => new
+                    {
+                        LogDate = g.Key,
+                        TotalNetCalories = g.Sum(c => c.Net_Calories)
+                    })
+                    .OrderBy(c => c.LogDate)
+                    .ToListAsync();
 
-            barChartOptions.Scales.X!.Title = new ChartAxesTitle { Text = "Days", Display = true };
-            barChartOptions.Scales.Y!.Title = new ChartAxesTitle { Text = "Calories", Display = true };
-            barChartOptions.Scales.Y!.BeginAtZero = true;
+                // Create labels and data for all 6 days (including days with no logs)
+                var labels = new List<string>();
+                var surplusDeficitData = new List<double?>();
+                var backgroundColors = new List<string>();
+                var borderColors = new List<string>();
 
-            barChartOptions.Plugins.Legend.Display = true;
+                for (int i = 0; i < 6; i++)
+                {
+                    var currentDate = startDate.AddDays(i);
+                    labels.Add(currentDate.ToString("MM/dd"));
+
+                    // Find the log for this date
+                    var logForDate = calorieLogs.FirstOrDefault(l => l.LogDate == currentDate);
+
+                    if (logForDate != null)
+                    {
+                        // Calculate surplus/deficit: Net Calories - Maintenance Calories
+                        var surplusDeficit = logForDate.TotalNetCalories - maintenanceTarget;
+                        surplusDeficitData.Add((double?)surplusDeficit);
+
+                        // Color code: green for surplus, red for deficit
+                        if (surplusDeficit >= 0)
+                        {
+                            backgroundColors.Add(ColorUtility.CategoricalTwelveColors[10]); // Green/positive color
+                            borderColors.Add(ColorUtility.CategoricalTwelveColors[10]);
+                        }
+                        else
+                        {
+                            backgroundColors.Add(ColorUtility.CategoricalTwelveColors[3]); // Red/negative color
+                            borderColors.Add(ColorUtility.CategoricalTwelveColors[3]);
+                        }
+                    }
+                    else
+                    {
+                        surplusDeficitData.Add(0); // No data for this day, show as 0
+                        backgroundColors.Add(ColorUtility.CategoricalTwelveColors[5]); // Gray for no data
+                        borderColors.Add(ColorUtility.CategoricalTwelveColors[5]);
+                    }
+                }
+
+                // Check if we have any actual data
+                var hasData = calorieLogs.Count != 0;
+                if (!hasData)
+                {
+                    errorMessage = "No calorie data available for the past 6 days. Start logging your meals!";
+                    InitializeEmptyBarChart("Daily Calorie Surplus/Deficit");
+                    return;
+                }
+
+                // Create a dataset for daily calorie surplus/deficit
+                var dataset1 = new BarChartDataset()
+                {
+                    Label = "Daily Calorie Surplus/Deficit",
+                    Data = surplusDeficitData,
+                    BackgroundColor = backgroundColors,
+                    BorderColor = borderColors,
+                    BorderWidth = new List<double> { 0 },
+                };
+
+                chartData = new ChartData { Labels = labels, Datasets = new List<IChartDataset> { dataset1 } };
+
+                barChartOptions = new BarChartOptions
+                {
+                    Responsive = true,
+                    Interaction = new Interaction { Mode = InteractionMode.Index },
+                    IndexAxis = "x"
+                };
+
+                barChartOptions.Scales.X!.Title = new ChartAxesTitle { Text = "Days", Display = true };
+                barChartOptions.Scales.Y!.Title = new ChartAxesTitle { Text = "Calories", Display = true };
+                barChartOptions.Scales.Y!.BeginAtZero = true;
+
+                barChartOptions.Plugins.Legend.Display = true;
+
+                // Clear error message on success
+                errorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error loading calorie surplus/deficit data: {ex.Message}";
+                System.Console.WriteLine($"Error in InitialiseDailyCalorieSurplusorDeficitGraph: {ex.Message}");
+                InitializeEmptyBarChart("Daily Calorie Surplus/Deficit");
+            }
         }
 
         private async Task InitialiseMacroDistributionGraph()
@@ -498,14 +820,14 @@ namespace WebsiteFirstDraft.Components.Pages
         {
             chartData = new ChartData
             {
-                Labels = new List<string> { "No Data" },
+                Labels = ["No Data"],
                 Datasets = new List<IChartDataset>
         {
             new PieChartDataset
             {
                 Label = label,
-                Data = new List<double?> { 1 },
-                BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] }
+                Data = [1],
+                BackgroundColor = [ColorUtility.CategoricalTwelveColors[0]]
             }
         }
             };
@@ -528,42 +850,141 @@ namespace WebsiteFirstDraft.Components.Pages
             };
         }
 
-        private void InitialiseDailyMacroIntakeGraph()
+        /// <summary>
+        /// Initializes an empty bar chart with default/placeholder data
+        /// </summary>
+        private void InitializeEmptyBarChart(string label)
         {
-            var labels = new List<string> { "Carbs", "Protein", "Fat" };
-            var datasets = new List<IChartDataset>();
-
-            var dataset1 = new BarChartDataset()
+            chartData = new ChartData
             {
-                Label = "Daily Macro Intake (g)",
-                Data = new List<double?> { 250, 180, 70 },
-                BackgroundColor = new List<string> 
-                { 
-                    ColorUtility.CategoricalTwelveColors[0],
-                    ColorUtility.CategoricalTwelveColors[1],
-                    ColorUtility.CategoricalTwelveColors[2]
-                },
-                BorderColor = new List<string> 
-                { 
-                    ColorUtility.CategoricalTwelveColors[0],
-                    ColorUtility.CategoricalTwelveColors[1],
-                    ColorUtility.CategoricalTwelveColors[2]
-                },
-                BorderWidth = new List<double> { 0 },
+                Labels = new List<string> { "No Data" },
+                Datasets = new List<IChartDataset>
+                {
+                    new BarChartDataset
+                    {
+                        Label = label,
+                        Data = new List<double?> { 0 },
+                        BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
+                        BorderColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
+                        BorderWidth = new List<double> { 0 }
+                    }
+                }
             };
-            datasets.Add(dataset1);
 
-            chartData = new ChartData { Labels = labels, Datasets = datasets };
+            barChartOptions = new BarChartOptions
+            {
+                Responsive = true,
+                Interaction = new Interaction { Mode = InteractionMode.Index },
+                IndexAxis = "x",
+                Scales = new Scales
+                {
+                    X = new() { Title = new ChartAxesTitle { Text = "Days", Display = true } },
+                    Y = new() { Title = new ChartAxesTitle { Text = "Calories", Display = true }, BeginAtZero = true }
+                },
+                Plugins = new BarChartPlugins
+                {
+                    Legend = new ChartPluginsLegend { Display = true }
+                }
+            };
+        }
 
-            barChartOptions = new BarChartOptions();
-            barChartOptions.Responsive = true;
-            barChartOptions.Interaction = new Interaction { Mode = InteractionMode.Y };
-            barChartOptions.IndexAxis = "y";
 
-            barChartOptions.Scales.X!.Title = new ChartAxesTitle { Text = "Grams", Display = true };
-            barChartOptions.Scales.Y!.Title = new ChartAxesTitle { Text = "Macro", Display = true };
+        private async Task InitialiseDailyMacroIntakeGraph()
+        {
+            try
+            {
+                // Query real data from database
+                var user = await Db.Users
+                    .FirstOrDefaultAsync(u => u.Username == Session.UserSession.Username);
 
-            barChartOptions.Plugins.Legend.Display = true;
+                if (user == null)
+                {
+                    errorMessage = "User not found. Please log in.";
+                    InitializeEmptyBarChart("Daily Macro Intake (kcal)");
+                    return;
+                }
+
+                // Get macro logs for the past 6 days
+                var endDate = DateTime.Today;
+                var startDate = endDate.AddDays(-5); // 6 days total including today
+
+                var macroLogs = await Db.Calorie_Logs
+                    .Where(c => c.User_id == user.User_id && c.Log_Date.Date >= startDate && c.Log_Date.Date <= endDate)
+                    .GroupBy(c => c.Log_Date.Date)
+                    .Select(g => new
+                    {
+                        LogDate = g.Key,
+                        TotalCarbs = g.Sum(c => c.Calories_From_Carbs),
+                        TotalProtein = g.Sum(c => c.Calories_From_Protein),
+                        TotalFat = g.Sum(c => c.Calories_From_Fats)
+                    })
+                    .OrderBy(c => c.LogDate)
+                    .ToListAsync();
+
+                // Check if we have any data
+                if (macroLogs.Count == 0)
+                {
+                    errorMessage = "No macro data available for the past 6 days. Start logging your meals!";
+                    InitializeEmptyBarChart("Daily Macro Intake (kcal)");
+                    return;
+                }
+
+                // Calculate average macros across the days with data
+                var avgCarbs = macroLogs.Average(m => m.TotalCarbs);
+                var avgProtein = macroLogs.Average(m => m.TotalProtein);
+                var avgFat = macroLogs.Average(m => m.TotalFat);
+
+                var labels = new List<string> { "Carbs", "Protein", "Fat" };
+                var datasets = new List<IChartDataset>();
+
+                var dataset1 = new BarChartDataset()
+                {
+                    Label = "Average Daily Macro Intake (kcal) - Past 6 Days",
+                    Data =
+                    [
+                        (double?)avgCarbs, 
+                        (double?)avgProtein, 
+                        (double?)avgFat 
+                    ],
+                    BackgroundColor =
+                    [
+                        ColorUtility.CategoricalTwelveColors[0],
+                        ColorUtility.CategoricalTwelveColors[1],
+                        ColorUtility.CategoricalTwelveColors[2]
+                    ],
+                    BorderColor =
+                    [
+                        ColorUtility.CategoricalTwelveColors[0],
+                        ColorUtility.CategoricalTwelveColors[1],
+                        ColorUtility.CategoricalTwelveColors[2]
+                    ],
+                    BorderWidth = [0],
+                };
+                datasets.Add(dataset1);
+
+                chartData = new ChartData { Labels = labels, Datasets = datasets };
+
+                barChartOptions = new BarChartOptions
+                {
+                    Responsive = true,
+                    Interaction = new Interaction { Mode = InteractionMode.Y },
+                    IndexAxis = "y"
+                };
+
+                barChartOptions.Scales.X!.Title = new ChartAxesTitle { Text = "Calories", Display = true };
+                barChartOptions.Scales.Y!.Title = new ChartAxesTitle { Text = "Macro", Display = true };
+
+                barChartOptions.Plugins.Legend.Display = true;
+
+                // Clear error message on success
+                errorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error loading macro intake data: {ex.Message}";
+                System.Console.WriteLine($"Error in InitialiseDailyMacroIntakeGraph: {ex.Message}");
+                InitializeEmptyBarChart("Daily Macro Intake (kcal)");
+            }
         }
 
         private void InitialiseCaloriesBurntThroughExerciseGraph()
@@ -602,19 +1023,19 @@ namespace WebsiteFirstDraft.Components.Pages
                 Label = "Exercise Type Frequency",
 
                 //  Data representing frequency of each exercise type
-                Data = new List<double?> { 2, 3, 4 },
-                BackgroundColor = new List<string>
-                {
+                Data = [2, 3, 4],
+                BackgroundColor =
+                [
                     ColorUtility.CategoricalTwelveColors[0],
                     ColorUtility.CategoricalTwelveColors[1],
                     ColorUtility.CategoricalTwelveColors[2]
-                },
-                BorderColor = new List<string>
-                {
+                ],
+                BorderColor =
+                [
                     ColorUtility.CategoricalTwelveColors[0],
                     ColorUtility.CategoricalTwelveColors[1],
                     ColorUtility.CategoricalTwelveColors[2]
-                },
+                ],
                 BorderWidth = new List<double> { 0 },
             };
             datasets.Add(dataset1);
