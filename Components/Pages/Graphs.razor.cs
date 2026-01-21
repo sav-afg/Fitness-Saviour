@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FSharp.Core;
 using System.Collections;
+using WebsiteFirstDraft.Utilities;
 
 namespace WebsiteFirstDraft.Components.Pages
 {
@@ -248,7 +249,7 @@ namespace WebsiteFirstDraft.Components.Pages
                     {
                         var averageWeight = logsInWeek.Average(w => w.Weight);
                         var weekLabel = $"Week {numberOfWeeks - weekOffset}";
-                        weeklyData.Add((weekLabel, averageWeight));
+                        weeklyData.Add((weekLabel, (double)averageWeight));
                     }
                 }
 
@@ -294,16 +295,16 @@ namespace WebsiteFirstDraft.Components.Pages
                 chartData = new ChartData
                 {
                     Labels = labels,
-                    Datasets =
-                    [
+                    Datasets = new List<IChartDataset>
+                    {
                         new LineChartDataset
                         {
                             Label = "Weight Change (kg)",
                             Data = weightChanges,
                             BackgroundColor = ColorUtility.CategoricalTwelveColors[2],
                             BorderColor = ColorUtility.CategoricalTwelveColors[2],
-                            PointRadius = [5],
-                            PointHoverRadius = [8]
+                            PointRadius = new List<double> { 5 },
+                            PointHoverRadius = new List<double> { 8 }
                         },
                         new LineChartDataset
                         {
@@ -311,11 +312,11 @@ namespace WebsiteFirstDraft.Components.Pages
                             Data = baselineData,
                             BackgroundColor = ColorUtility.CategoricalTwelveColors[3],
                             BorderColor = ColorUtility.CategoricalTwelveColors[3],
-                            PointRadius = [0],
-                            PointHoverRadius = [0],
-                            BorderDash = [5, 5]
+                            PointRadius = new List<double> { 0 },
+                            PointHoverRadius = new List<double> { 0 },
+                            BorderDash = new List<double> { 5, 5 }
                         }
-                    ]
+                    }
                 };
 
                 lineChartOptions = new LineChartOptions
@@ -564,8 +565,8 @@ namespace WebsiteFirstDraft.Components.Pages
                 chartData = new ChartData
                 {
                     Labels = labels,
-                    Datasets =
-                    [
+                    Datasets = new List<IChartDataset>
+                    {
                         new LineChartDataset
                         {
                             Label = "Daily Calorie Intake",
@@ -586,7 +587,7 @@ namespace WebsiteFirstDraft.Components.Pages
                             PointHoverRadius = new List<double> { 5 },
                             BorderDash = new List<double> { 5, 5 } // Dashed line for target
                         }
-                    ]
+                    }
                 };
 
                 lineChartOptions = new LineChartOptions
@@ -820,16 +821,16 @@ namespace WebsiteFirstDraft.Components.Pages
         {
             chartData = new ChartData
             {
-                Labels = ["No Data"],
+                Labels = new List<string> { "No Data" },
                 Datasets = new List<IChartDataset>
-        {
-            new PieChartDataset
-            {
-                Label = label,
-                Data = [1],
-                BackgroundColor = [ColorUtility.CategoricalTwelveColors[0]]
-            }
-        }
+                {
+                    new PieChartDataset
+                    {
+                        Label = label,
+                        Data = new List<double?> { 1 },
+                        BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] }
+                    }
+                }
             };
 
             pieChartOptions = new PieChartOptions
@@ -940,25 +941,25 @@ namespace WebsiteFirstDraft.Components.Pages
                 var dataset1 = new BarChartDataset()
                 {
                     Label = "Average Daily Macro Intake (kcal) - Past 6 Days",
-                    Data =
-                    [
-                        (double?)avgCarbs, 
-                        (double?)avgProtein, 
-                        (double?)avgFat 
-                    ],
-                    BackgroundColor =
-                    [
+                    Data = new List<double?>
+                    {
+                        (double?)avgCarbs,
+                        (double?)avgProtein,
+                        (double?)avgFat
+                    },
+                    BackgroundColor = new List<string>
+                    {
                         ColorUtility.CategoricalTwelveColors[0],
                         ColorUtility.CategoricalTwelveColors[1],
                         ColorUtility.CategoricalTwelveColors[2]
-                    ],
-                    BorderColor =
-                    [
+                    },
+                    BorderColor = new List<string>
+                    {
                         ColorUtility.CategoricalTwelveColors[0],
                         ColorUtility.CategoricalTwelveColors[1],
                         ColorUtility.CategoricalTwelveColors[2]
-                    ],
-                    BorderWidth = [0],
+                    },
+                    BorderWidth = new List<double> { 0 },
                 };
                 datasets.Add(dataset1);
 
@@ -1109,19 +1110,19 @@ namespace WebsiteFirstDraft.Components.Pages
                 Label = "Exercise Type Frequency",
 
                 //  Data representing frequency of each exercise type
-                Data = [2, 3, 4],
-                BackgroundColor =
-                [
+                Data = new List<double?> { 2, 3, 4 },
+                BackgroundColor = new List<string>
+                {
                     ColorUtility.CategoricalTwelveColors[0],
                     ColorUtility.CategoricalTwelveColors[1],
                     ColorUtility.CategoricalTwelveColors[2]
-                ],
-                BorderColor =
-                [
+                },
+                BorderColor = new List<string>
+                {
                     ColorUtility.CategoricalTwelveColors[0],
                     ColorUtility.CategoricalTwelveColors[1],
                     ColorUtility.CategoricalTwelveColors[2]
-                ],
+                },
                 BorderWidth = new List<double> { 0 },
             };
             datasets.Add(dataset1);

@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebsiteFirstDraft.Components;
 using WebsiteFirstDraft.Data.Models;
-using Syncfusion.Blazor;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,8 +19,8 @@ namespace WebsiteFirstDraft
 
 
             // Add services to the container.
-            builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+            builder.Services.AddRazorPages();
+            builder.Services.AddServerSideBlazor();
 
             builder.Services.AddScoped<DietQuestionnaireState>();
             builder.Services.AddScoped<ExerciseQuestionnaireState>();
@@ -54,16 +53,17 @@ namespace WebsiteFirstDraft
                 app.UseHsts();
             }
 
-            app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+            app.UseStatusCodePagesWithReExecute("/not-found");
             app.UseHttpsRedirection();
+            
+            app.UseStaticFiles();
 
-            app.UseAntiforgery();
+            app.UseRouting();
 
             //Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf0x3WmFZfVhgdl9EY1ZTQ2Y/P1ZhSXxWd0dhXH5acndXQWRUV0B9XEA=");
 
-            app.MapStaticAssets();
-            app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
+            app.MapBlazorHub();
+            app.MapFallbackToPage("/_Host");
 
             app.Run();
 
