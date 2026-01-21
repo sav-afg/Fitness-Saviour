@@ -1,5 +1,4 @@
 ﻿@page "/graphs"
-@rendermode InteractiveServer
 @inject UserSessionService Session
 @inject AppDbContext Db
 
@@ -15,7 +14,7 @@
                         What category of graph are you looking for?
                     </strong>
                 </label>
-                <select class="form-select" @bind="GraphCategory">
+                <select class="form-select" @bind-value="GraphCategory" @bind-value:event="onchange">
                     <option disabled value="">Select an option</option>
                     <option>BodyweightProgress</option>
                     <option>CalorieTracking</option>
@@ -33,7 +32,16 @@
                         Select your graph
                     </strong>
                 </label>
-                <EnumInput TEnum="GraphName" @bind-Value="@selectedGraph" />
+                <select class="form-select" @bind-value="selectedGraph" @bind-value:event="onchange">
+                    <option value="0">Bodyweight over Time</option>
+                    <option value="1">Weight Change per Week</option>
+                    <option value="2">Daily Calorie Intake vs Target</option>
+                    <option value="3">Daily calorie surplus or deficit</option>
+                    <option value="4">Average Macro Distribution</option>
+                    <option value="5">Daily Macro Intake</option>
+                    <option value="6">Calories Burnt Through Exercise</option>
+                    <option value="7">Exercise Type Frequency</option>
+                </select>
                 <button class="btn btn-primary mt-2" @onclick="OnGraphSelected">Load Graph</button>
             </div>
         </div>

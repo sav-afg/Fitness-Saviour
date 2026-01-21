@@ -3,8 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebsiteFirstDraft.Components;
 using WebsiteFirstDraft.Data.Models;
+using WebsiteFirstDraft.Data;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.InMemory;
 
 namespace WebsiteFirstDraft
 {
@@ -15,7 +17,9 @@ namespace WebsiteFirstDraft
 
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            // Use In-Memory Database instead of SQL Server
+            builder.Services.AddDbContext<AppDbContext>(options => 
+                options.UseInMemoryDatabase("FitnessTrackerDB"));
 
 
             // Add services to the container.
@@ -44,6 +48,14 @@ namespace WebsiteFirstDraft
 
 
             var app = builder.Build();
+
+            // Seed the in-memory database with sample data
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var context = services.GetRequiredService<AppDbContext>();
+                DatabaseSeeder.SeedDatabase(context);
+            }
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())

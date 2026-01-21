@@ -31,6 +31,11 @@ namespace WebsiteFirstDraft.Data.DatabaseTableModels
         public int? Calories_From_Protein { get; set; }
         public int? Calories_From_Fats { get; set; }
 
+        // Macro tracking in grams
+        public int Carbs_Consumed { get; set; }
+        public int Protein_Consumed { get; set; }
+        public int Fat_Consumed { get; set; }
+
         //// Navigation Properties
 
         //public required User User { get; set; }

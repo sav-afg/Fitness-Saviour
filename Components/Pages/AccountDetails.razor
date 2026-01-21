@@ -1,5 +1,4 @@
 ﻿@page "/accountdetails"
-@rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject AuthService AuthService
 @inject UserSessionService Session
@@ -32,6 +31,13 @@
     </button>
 </div>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+
 @code {
     private void NavToHomePage()
     {
@@ -49,36 +55,54 @@
 
     async Task Login()
     {
-        if (await AuthService.LoginAsync(username, password))
+        try
         {
-            Session.UserSession.Username = username;
-
-            var user = await Db.Users
-                .FirstOrDefaultAsync(u => EF.Functions.Like(u.Username, username));
-
-            if (user != null)
+            Console.WriteLine($"🔐 Attempting login for user: {username}");
+            
+            // Check how many users are in the database
+            var userCount = await Db.Users.CountAsync();
+            Console.WriteLine($"📊 Total users in database: {userCount}");
+            
+            if (await AuthService.LoginAsync(username, password))
             {
-                // Load ALL UI preferences from database
-                Session.UserSession.High_Contrast_Mode = user.High_Contrast_Mode;
-                Session.UserSession.Dyslexia_Friendly_Font = user.Dyslexia_Friendly_Font;
-                Session.UserSession.Reduced_Animations = user.Reduced_Animations;
-                Session.UserSession.Larger_Font_Size = user.Larger_Font_Size;
-                Session.UserSession.Visual_Rewards = user.Visual_Rewards;
-                Session.UserSession.Progress_Data = user.Progress_Data;
-                Session.UserSession.Minimal_Interface = user.Minimal_Interface;
-                Session.UserSession.Tracking_Preferences = user.Tracking_Preferences ?? "";
-                
-                // Load other user data
-                Session.UserSession.Email = user.Email ?? "";
-                Session.UserSession.Phone_Number = user.Phone_Number ?? "";
-                Session.UserSession.Role = user.Role ?? "User";
-            }
+                Console.WriteLine($"✅ Login successful for: {username}");
+                Session.UserSession.Username = username;
 
-            NavigationManager.NavigateTo("/");
+                var user = await Db.Users
+                    .FirstOrDefaultAsync(u => u.Username == username);
+
+                if (user != null)
+                {
+                    Console.WriteLine($"✅ User data loaded for: {username}");
+                    
+                    // Load ALL UI preferences from database
+                    Session.UserSession.High_Contrast_Mode = user.High_Contrast_Mode;
+                    Session.UserSession.Dyslexia_Friendly_Font = user.Dyslexia_Friendly_Font;
+                    Session.UserSession.Reduced_Animations = user.Reduced_Animations;
+                    Session.UserSession.Larger_Font_Size = user.Larger_Font_Size;
+                    Session.UserSession.Visual_Rewards = user.Visual_Rewards;
+                    Session.UserSession.Progress_Data = user.Progress_Data;
+                    Session.UserSession.Minimal_Interface = user.Minimal_Interface;
+                    Session.UserSession.Tracking_Preferences = user.Tracking_Preferences ?? "";
+                    
+                    // Load other user data
+                    Session.UserSession.Email = user.Email ?? "";
+                    Session.UserSession.Phone_Number = user.Phone_Number ?? "";
+                    Session.UserSession.Role = user.Role ?? "User";
+                }
+
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                Console.WriteLine($"❌ Login failed for: {username}");
+                errorMessage = $"Invalid username or password. Try: john_fitness, sarah_health, or mike_athlete with Password123!";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            errorMessage = "Invalid login";
+            Console.WriteLine($"❌ Login error: {ex.Message}");
+            errorMessage = $"Login error: {ex.Message}";
         }
     }
 }

@@ -262,7 +262,7 @@ namespace WebsiteFirstDraft.Components.Pages
 
                 // Calculate week-to-week changes
                 var labels = new List<string>();
-                var weightChanges = new List<double?>();
+                var weightChanges = new List<double>();
 
 
                 for (int i = 1; i < weeklyData.Count; i++)
@@ -281,12 +281,12 @@ namespace WebsiteFirstDraft.Components.Pages
                 }
 
                 // Calculate safe min/max for the Y-axis
-                var minChange = weightChanges.Where(d => d.HasValue).Select(d => d!.Value).DefaultIfEmpty(0).Min();
-                var maxChange = weightChanges.Where(d => d.HasValue).Select(d => d!.Value).DefaultIfEmpty(0).Max();
+                var minChange = weightChanges.DefaultIfEmpty(0).Min();
+                var maxChange = weightChanges.DefaultIfEmpty(0).Max();
                 var yAxisPadding = Math.Max(0.5, Math.Abs(Math.Max(Math.Abs(minChange), Math.Abs(maxChange))) * 0.2);
 
                 // Create baseline data (all zeros) matching the number of labels
-                var baselineData = new List<double?>();
+                var baselineData = new List<double>();
                 for (int i = 0; i < labels.Count; i++)
                 {
                     baselineData.Add(0);
@@ -301,20 +301,20 @@ namespace WebsiteFirstDraft.Components.Pages
                         {
                             Label = "Weight Change (kg)",
                             Data = weightChanges,
-                            BackgroundColor = ColorUtility.CategoricalTwelveColors[2],
-                            BorderColor = ColorUtility.CategoricalTwelveColors[2],
-                            PointRadius = new List<double> { 5 },
-                            PointHoverRadius = new List<double> { 8 }
+                            BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[2] },
+                            BorderColor = new List<string> { ColorUtility.CategoricalTwelveColors[2] },
+                            PointRadius = new List<int> { 5 },
+                            PointHoverRadius = new List<int> { 8 }
                         },
                         new LineChartDataset
                         {
                             Label = "Baseline",
                             Data = baselineData,
-                            BackgroundColor = ColorUtility.CategoricalTwelveColors[3],
-                            BorderColor = ColorUtility.CategoricalTwelveColors[3],
-                            PointRadius = new List<double> { 0 },
-                            PointHoverRadius = new List<double> { 0 },
-                            BorderDash = new List<double> { 5, 5 }
+                            BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[3] },
+                            BorderColor = new List<string> { ColorUtility.CategoricalTwelveColors[3] },
+                            PointRadius = new List<int> { 0 },
+                            PointHoverRadius = new List<int> { 0 },
+                            BorderDash = new List<int> { 5, 5 }
                         }
                     }
                 };
@@ -389,11 +389,11 @@ namespace WebsiteFirstDraft.Components.Pages
 
                 // Extract data safely
                 var labels = weightLogs.Select(w => w.LogDate.ToString("MM/dd")).ToList();
-                var data = weightLogs.Select(w => (double?)w.Weight).ToList();
+                var data = weightLogs.Select(w => w.Weight).ToList();
 
                 // Calculate safe min/max with fallbacks
-                var minWeight = data.Where(d => d.HasValue).Select(d => d!.Value).DefaultIfEmpty(0).Min();
-                var maxWeight = data.Where(d => d.HasValue).Select(d => d!.Value).DefaultIfEmpty(100).Max();
+                var minWeight = data.DefaultIfEmpty(0).Min();
+                var maxWeight = data.DefaultIfEmpty(100).Max();
 
                 chartData = new ChartData
                 {
@@ -404,10 +404,10 @@ namespace WebsiteFirstDraft.Components.Pages
                         {
                             Label = "Body Weight (kg)",
                             Data = data,
-                            BackgroundColor = ColorUtility.CategoricalTwelveColors[0],
-                            BorderColor = ColorUtility.CategoricalTwelveColors[0],
-                            PointRadius = new List<double> { 5 },
-                            PointHoverRadius = new List<double> { 8 }
+                            BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
+                            BorderColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
+                            PointRadius = new List<int> { 5 },
+                            PointHoverRadius = new List<int> { 8 }
                         }
                     }
                 };
@@ -453,11 +453,11 @@ namespace WebsiteFirstDraft.Components.Pages
                     new LineChartDataset
                     {
                         Label = label,
-                        Data = new List<double?> { 0 },
-                        BackgroundColor = ColorUtility.CategoricalTwelveColors[0],
-                        BorderColor = ColorUtility.CategoricalTwelveColors[0],
-                        PointRadius = new List<double> { 5 },
-                        PointHoverRadius = new List<double> { 8 }
+                        Data = new List<double> { 0 },
+                        BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
+                        BorderColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
+                        PointRadius = new List<int> { 5 },
+                        PointHoverRadius = new List<int> { 8 }
                     }
                 }
             };
@@ -523,8 +523,8 @@ namespace WebsiteFirstDraft.Components.Pages
 
                 // Create labels and data for all 6 days (including days with no logs)
                 var labels = new List<string>();
-                var actualIntakeData = new List<double?>();
-                var targetData = new List<double?>();
+                var actualIntakeData = new List<double>();
+                var targetData = new List<double>();
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -536,18 +536,18 @@ namespace WebsiteFirstDraft.Components.Pages
                     
                     if (logForDate != null)
                     {
-                        actualIntakeData.Add((double?)logForDate.TotalNetCalories);
+                        actualIntakeData.Add(logForDate.TotalNetCalories);
                     }
                     else
                     {
-                        actualIntakeData.Add(null); // No data for this day
+                        actualIntakeData.Add(0); // No data for this day
                     }
 
-                    targetData.Add((double?)maintenanceTarget);
+                    targetData.Add(maintenanceTarget);
                 }
 
                 // Check if we have any actual data
-                if (actualIntakeData.All(d => !d.HasValue))
+                if (actualIntakeData.All(d => d == 0))
                 {
                     errorMessage = "No calorie data available for the past 6 days. Start logging your meals!";
                     InitializeEmptyLineChart("Daily Calorie Intake");
@@ -555,7 +555,7 @@ namespace WebsiteFirstDraft.Components.Pages
                 }
 
                 // Calculate safe min/max for the Y-axis
-                var allValues = actualIntakeData.Where(d => d.HasValue).Select(d => d!.Value).ToList();
+                var allValues = actualIntakeData.Where(d => d > 0).ToList();
                 allValues.Add(maintenanceTarget);
 
                 var minValue = allValues.Min();
@@ -571,21 +571,21 @@ namespace WebsiteFirstDraft.Components.Pages
                         {
                             Label = "Daily Calorie Intake",
                             Data = actualIntakeData,
-                            BackgroundColor = ColorUtility.CategoricalTwelveColors[0],
-                            BorderColor = ColorUtility.CategoricalTwelveColors[0],
-                            PointRadius = new List<double> { 5 },
-                            PointHoverRadius = new List<double> { 8 },
+                            BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
+                            BorderColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
+                            PointRadius = new List<int> { 5 },
+                            PointHoverRadius = new List<int> { 8 },
                             SpanGaps = true // Connect points even when there are null values
                         },
                         new LineChartDataset
                         {
                             Label = "Maintenance Target",
                             Data = targetData,
-                            BackgroundColor = ColorUtility.CategoricalTwelveColors[1],
-                            BorderColor = ColorUtility.CategoricalTwelveColors[1],
-                            PointRadius = new List<double> { 3 },
-                            PointHoverRadius = new List<double> { 5 },
-                            BorderDash = new List<double> { 5, 5 } // Dashed line for target
+                            BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[1] },
+                            BorderColor = new List<string> { ColorUtility.CategoricalTwelveColors[1] },
+                            PointRadius = new List<int> { 3 },
+                            PointHoverRadius = new List<int> { 5 },
+                            BorderDash = new List<int> { 5, 5 } // Dashed line for target
                         }
                     }
                 };
@@ -660,7 +660,7 @@ namespace WebsiteFirstDraft.Components.Pages
 
                 // Create labels and data for all 6 days (including days with no logs)
                 var labels = new List<string>();
-                var surplusDeficitData = new List<double?>();
+                var surplusDeficitData = new List<double>();
                 var backgroundColors = new List<string>();
                 var borderColors = new List<string>();
 
@@ -676,7 +676,7 @@ namespace WebsiteFirstDraft.Components.Pages
                     {
                         // Calculate surplus/deficit: Net Calories - Maintenance Calories
                         var surplusDeficit = logForDate.TotalNetCalories - maintenanceTarget;
-                        surplusDeficitData.Add((double?)surplusDeficit);
+                        surplusDeficitData.Add(surplusDeficit);
 
                         // Color code: green for surplus, red for deficit
                         if (surplusDeficit >= 0)
@@ -774,11 +774,11 @@ namespace WebsiteFirstDraft.Components.Pages
                 var dataset1 = new PieChartDataset()
                 {
                     Label = "Daily Macro Intake (g)",
-                    Data = new List<double?>
+                    Data = new List<double>
             {
-                (double?)user.Daily_Carbs,
-                (double?)user.Daily_Protein,
-                (double?)user.Daily_Fat
+                user.Daily_Carbs,
+                user.Daily_Protein,
+                user.Daily_Fat
             },
                     BackgroundColor = new List<string>
             {
@@ -827,7 +827,7 @@ namespace WebsiteFirstDraft.Components.Pages
                     new PieChartDataset
                     {
                         Label = label,
-                        Data = new List<double?> { 1 },
+                        Data = new List<double> { 1 },
                         BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] }
                     }
                 }
@@ -864,7 +864,7 @@ namespace WebsiteFirstDraft.Components.Pages
                     new BarChartDataset
                     {
                         Label = label,
-                        Data = new List<double?> { 0 },
+                        Data = new List<double> { 0 },
                         BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
                         BorderColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
                         BorderWidth = new List<double> { 0 }
@@ -941,11 +941,11 @@ namespace WebsiteFirstDraft.Components.Pages
                 var dataset1 = new BarChartDataset()
                 {
                     Label = "Average Daily Macro Intake (kcal) - Past 6 Days",
-                    Data = new List<double?>
+                    Data = new List<double>
                     {
-                        (double?)avgCarbs,
-                        (double?)avgProtein,
-                        (double?)avgFat
+                        avgCarbs ?? 0,
+                        avgProtein ?? 0,
+                        avgFat ?? 0
                     },
                     BackgroundColor = new List<string>
                     {
@@ -1020,7 +1020,7 @@ namespace WebsiteFirstDraft.Components.Pages
 
                 // Create labels and data for all 6 days (including days with no logs)
                 var labels = new List<string>();
-                var caloriesBurnedData = new List<double?>();
+                var caloriesBurnedData = new List<double>();
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -1032,7 +1032,7 @@ namespace WebsiteFirstDraft.Components.Pages
 
                     if (logForDate != null)
                     {
-                        caloriesBurnedData.Add((double?)logForDate.TotalCaloriesBurned);
+                        caloriesBurnedData.Add(logForDate.TotalCaloriesBurned);
                     }
                     else
                     {
@@ -1049,7 +1049,7 @@ namespace WebsiteFirstDraft.Components.Pages
                 }
 
                 // Calculate safe max for the Y-axis
-                var maxCalories = caloriesBurnedData.Max() ?? 0;
+                var maxCalories = caloriesBurnedData.Max();
                 var yAxisMax = Math.Max(100, Math.Ceiling(maxCalories / 100.0) * 100); // Round up to nearest 100
 
                 chartData = new ChartData
@@ -1061,10 +1061,10 @@ namespace WebsiteFirstDraft.Components.Pages
                         {
                             Label = "Calories Burnt (kcal)",
                             Data = caloriesBurnedData,
-                            BackgroundColor = ColorUtility.CategoricalTwelveColors[0],
-                            BorderColor = ColorUtility.CategoricalTwelveColors[0],
-                            PointRadius = new List<double> { 5 },
-                            PointHoverRadius = new List<double> { 8 },
+                            BackgroundColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
+                            BorderColor = new List<string> { ColorUtility.CategoricalTwelveColors[0] },
+                            PointRadius = new List<int> { 5 },
+                            PointHoverRadius = new List<int> { 8 },
                             //Fill = true,
                             //Tension = 0.3 // Smooth line
                         }
@@ -1110,7 +1110,7 @@ namespace WebsiteFirstDraft.Components.Pages
                 Label = "Exercise Type Frequency",
 
                 //  Data representing frequency of each exercise type
-                Data = new List<double?> { 2, 3, 4 },
+                Data = new List<double> { 2, 3, 4 },
                 BackgroundColor = new List<string>
                 {
                     ColorUtility.CategoricalTwelveColors[0],
@@ -1169,10 +1169,10 @@ namespace WebsiteFirstDraft.Components.Pages
             {
                 Label = label,
                 Data = positive ? GetRandomPositiveData(min, max) : GetRandomData(),
-                BackgroundColor = c.ToRgbaString(),
-                BorderColor = c.ToRgbString(),
-                PointRadius = new List<double> { 5 },
-                PointHoverRadius = new List<double> { 8 },
+                BackgroundColor = new List<string> { c.ToRgbaString() },
+                BorderColor = new List<string> { c.ToRgbString() },
+                PointRadius = new List<int> { 5 },
+                PointHoverRadius = new List<int> { 8 },
             };
         }
 
@@ -1184,16 +1184,16 @@ namespace WebsiteFirstDraft.Components.Pages
             {
                 Label = $"Baseline",
                 Data = GetBaseline(),
-                BackgroundColor = c.ToRgbaString(),
-                BorderColor = c.ToRgbString(),
-                PointRadius = new List<double> { 5 },
-                PointHoverRadius = new List<double> { 8 },
+                BackgroundColor = new List<string> { c.ToRgbaString() },
+                BorderColor = new List<string> { c.ToRgbString() },
+                PointRadius = new List<int> { 5 },
+                PointHoverRadius = new List<int> { 8 },
             };
         }
 
-        private List<double?> GetRandomData()
+        private List<double> GetRandomData()
         {
-            var data = new List<double?>();
+            var data = new List<double>();
             for (var index = 0; index < labelsCount; index++)
             {
                 data.Add((random.NextDouble() * 2.0) - 1.0);
@@ -1202,9 +1202,9 @@ namespace WebsiteFirstDraft.Components.Pages
             return data;
         }
 
-        private List<double?> GetRandomPositiveData(int min, int max)
+        private List<double> GetRandomPositiveData(int min, int max)
         {
-            var data = new List<double?>();
+            var data = new List<double>();
             for (var index = 0; index < labelsCount; index++)
             {
                 data.Add(random.Next(min, max + 1));
@@ -1213,9 +1213,9 @@ namespace WebsiteFirstDraft.Components.Pages
             return data;
         }
 
-        private List<double?> GetBaseline()
+        private List<double> GetBaseline()
         {
-            var data = new List<double?>();
+            var data = new List<double>();
             for (var index = 0; index < labelsCount; index++)
             {
                 data.Add(0);

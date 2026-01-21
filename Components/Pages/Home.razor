@@ -1,9 +1,9 @@
 ﻿@page "/"
 @inject NavigationManager NavigationManager
-@rendermode InteractiveServer
 @inject UISettingsService UI
 @inject UserSessionService Session
 @inject AppDbContext Db
+@using WebsiteFirstDraft.Utilities
 
 <PageTitle>HomePage</PageTitle>
 
@@ -136,12 +136,12 @@
                                 @for (var i = 0; i < chartData.Labels.Count; i++)
                                 {
                                     var label = chartData.Labels[i];
-                                    var value = i < dataset.Data.Count ? dataset.Data[i] : null;
+                                    var value = i < dataset.Data.Count ? dataset.Data[i] : 0;
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>@label</span>
 
                                         @*The icon will display the grams of macros the user has consumed*@
-                                        <span class="badge bg-primary rounded-pill">@((value ?? 0).ToString())g</span>
+                                        <span class="badge bg-primary rounded-pill">@value.ToString()g</span>
                                     </li>
                                 }
                             </ul>
@@ -328,13 +328,13 @@
 
     // Gets the actual macro data from the user's session (loaded from database)
     // Returns carbs, protein, and fat values
-    private List<double?> GetUserMacroData()
+    private List<double> GetUserMacroData()
     {
-        var data = new List<double?>
+        var data = new List<double>
         {
-            (double?)Session.UserSession.Daily_Carbs,
-            (double?)Session.UserSession.Daily_Protein,
-            (double?)Session.UserSession.Daily_Fat
+            Session.UserSession.Daily_Carbs,
+            Session.UserSession.Daily_Protein,
+            Session.UserSession.Daily_Fat
         };
 
         return data;

@@ -27,7 +27,7 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
             // Called once when the component is first initialised
             // Loads all ExerciseTypes from the database into memory
             // so they can be displayed in the UI
-            exercise_types = [.. Db.exercise_types];
+            exercise_types = Db.exercise_types.ToList();
         }
 
         void Create()
@@ -99,7 +99,7 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
             // Queries the database for exercise types where
             // the ExerciseNames field contains the search text
             // and stores the results in myresults
-            myresults = [.. Db.exercise_types.Where(e => e.ExerciseNames.Contains(searchText))];
+            myresults = Db.exercise_types.Where(e => e.ExerciseNames.Contains(searchText)).ToList();
         }
 
         // Method that will set the input class as a certain colour based off the value inside the cell
@@ -108,6 +108,7 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
             return exerciseType.IntensityLevel switch
             {
                 "Low" => "faded-green",
+                "Medium" => "faded-yellow",
                 "Moderate" => "faded-yellow",
                 "High" => "faded-red",
                 _ => string.Empty,

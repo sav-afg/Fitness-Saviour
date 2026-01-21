@@ -1,0 +1,110 @@
+@page "/dbstatus"
+@inject AppDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<h3>Database Status</h3>
+
+<div class="card">
+    <div class="card-header">
+        <h4>In-Memory Database Diagnostics</h4>
+    </div>
+    <div class="card-body">
+        @if (isLoaded)
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Table</th>
+                        <th>Record Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Users</td>
+                        <td><strong>@userCount</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Weight Logs</td>
+                        <td>@weightLogCount</td>
+                    </tr>
+                    <tr>
+                        <td>Calorie Logs</td>
+                        <td>@calorieLogCount</td>
+                    </tr>
+                    <tr>
+                        <td>Exercise Types</td>
+                        <td>@exerciseTypeCount</td>
+                    </tr>
+                    <tr>
+                        <td>Food Types</td>
+                        <td>@foodTypeCount</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <hr />
+
+            <h5>Available Users</h5>
+            @if (userCount > 0)
+            {
+                <ul class="list-group">
+                    @foreach (var user in users)
+                    {
+                        <li class="list-group-item">
+                            <strong>@user.Username</strong> - @user.Email
+                            <br />
+                            <small class="text-muted">Weight: @user.Body_Weight kg | Maintenance: @user.Maintenance_Calories kcal</small>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    ?? No users found in database! Database seeding may have failed.
+                </div>
+            }
+        }
+        else
+        {
+            <p>Loading database status...</p>
+        }
+    </div>
+</div>
+
+<div class="mt-3">
+    <button class="btn btn-primary" @onclick="Refresh">Refresh Status</button>
+    <a href="/accountdetails" class="btn btn-secondary">Go to Login</a>
+</div>
+
+@code {
+    private bool isLoaded = false;
+    private int userCount = 0;
+    private int weightLogCount = 0;
+    private int calorieLogCount = 0;
+    private int exerciseTypeCount = 0;
+    private int foodTypeCount = 0;
+    private List<WebsiteFirstDraft.Data.DatabaseTableModels.User> users = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        userCount = await Db.Users.CountAsync();
+        weightLogCount = await Db.Weight_Logs.CountAsync();
+        calorieLogCount = await Db.Calorie_Logs.CountAsync();
+        exerciseTypeCount = await Db.exercise_types.CountAsync();
+        foodTypeCount = await Db.Food_items.CountAsync();
+        users = await Db.Users.Take(10).ToListAsync();
+        isLoaded = true;
+    }
+
+    private async Task Refresh()
+    {
+        isLoaded = false;
+        await LoadData();
+    }
+}

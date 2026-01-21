@@ -1,6 +1,7 @@
 ﻿@* Reusable Macro Pie Chart Component *@
 @using BlazorBootstrap
 @using WebsiteFirstDraft.Data.Models
+@using WebsiteFirstDraft.Utilities
 
 @if (ShowChart)
 {
@@ -89,11 +90,11 @@ else
                 new PieChartDataset
                 {
                     Label = "Grams",
-                    Data = new List<double?>
+                    Data = new List<double>
                     {
-                        (double?)DailyCarbs,
-                        (double?)DailyProtein,
-                        (double?)DailyFat
+                        DailyCarbs,
+                        DailyProtein,
+                        DailyFat
                     },
                     BackgroundColor = new List<string>
                     {
@@ -144,11 +145,11 @@ else
 
         if (chartData?.Datasets?.Count > 0 && chartData.Datasets[0] is PieChartDataset dataset)
         {
-            dataset.Data = new List<double?>
+            dataset.Data = new List<double>
             {
-                (double?)DailyCarbs,
-                (double?)DailyProtein,
-                (double?)DailyFat
+                DailyCarbs,
+                DailyProtein,
+                DailyFat
             };
 
             if (ShowChart && pieChart != null && pieChartOptions != null)
