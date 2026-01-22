@@ -1,0 +1,20 @@
+﻿@page "/admin"
+@using WebsiteFirstDraft.Data.Models;
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject UISettingsService UIService
+@inject UserSessionService Session
+
+<h3>AdminOnlyPage</h3>
+@if (Session.UserSession.Role == "User")
+{
+    <p>Sorry, you dont have permission to view this page</p>
+}
+else
+{
+    <p>If you can see this message, congrats! You are an admin</p>
+}
+
+@code {
+
+}

@@ -10,49 +10,6 @@
 <p class="blockquote text-center">Welcome to the Exercise Logging Page</p>
 <p class="blockquote text-center">Here you can search for exercises from our database and add/remove entries</p>
 
-
-@* <div class="container-fluid">
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <div class="row g-3 align-items-center">
-                <!-- Search Input with Clear Button -->
-                <div class="col-md-10 col-12">
-                    <div class="input-group">
-                        <span class="input-group-text bg-primary text-white">
-                            <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text" 
-                               class="form-control form-control-lg" 
-                               placeholder="Search for exercises (e.g., Running, Yoga, Cycling...)" 
-                               @bind="searchText"
-                               @bind:event="oninput"
-                               @onkeyup="HandleEnterKey" />
-                        @if (!string.IsNullOrWhiteSpace(searchText))
-                        {
-                            <button class="btn btn-outline-secondary"
-                                    type="button"
-                                    @onclick="ClearSearch">
-                                <i class="bi bi-x-circle"></i>
-                            </button>
-                        }
-                    </div>
-                </div>
-
-                <!-- Search Button -->
-                <div class="col-md-2 col-12">
-                    <button type="button" 
-                            class="btn btn-primary btn-lg w-100" 
-                            @onclick="Search"
-                            disabled="@string.IsNullOrWhiteSpace(searchText)">
-                        <i class="bi bi-search me-2"></i>
-                        Search
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div> *@
-
 @*Uses the search bar razor component*@
 <SearchBar @bind-SearchText="searchText"
            Placeholder="Search for exercises (e.g., Running, Yoga, Cycling...)"

@@ -1054,8 +1054,8 @@ namespace WebsiteFirstDraft.Components.Pages
                 chartData = new ChartData
                 {
                     Labels = labels,
-                    Datasets = new List<IChartDataset>
-                    {
+                    Datasets =
+                    [
                         new LineChartDataset
                         {
                             Label = "Calories Burnt (kcal)",
@@ -1067,7 +1067,7 @@ namespace WebsiteFirstDraft.Components.Pages
                             //Fill = true,
                             //Tension = 0.3 // Smooth line
                         }
-                    }
+                    ]
                 };
 
                 lineChartOptions = new LineChartOptions
