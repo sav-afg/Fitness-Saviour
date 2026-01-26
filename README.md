@@ -11,7 +11,7 @@ A comprehensive full-stack fitness web application built with C#, Blazor, and SQ
 
 ## Features
 
-### 🍎 Nutrition & Diet Management
+### Nutrition & Diet Management
 - **Maintenance Calorie Calculator**: Science-based calculator using sex, height, weight, age, and activity level to determine daily calorie needs
 - **Food Logging**: Track daily food intake with automatic calorie and macro calculations
 - **Diet Recommendations**: Personalized diet suggestions via intelligent questionnaire and scoring algorithm that considers:
