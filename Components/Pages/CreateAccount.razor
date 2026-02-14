@@ -16,27 +16,31 @@
 <EditForm Model="registermyUser" OnValidSubmit="RegisterUser">
     <DataAnnotationsValidator />
 
-    <div class="input-group mb-4 blockquote">
-        <InputText @bind-Value="registermyUser.Username" class="form-control" />
+    <div class="mb-4 blockquote">
+        <label for="username" class="form-label">Username</label>
+        <InputText @bind-Value="registermyUser.Username" class="form-control" id="username" />
         <ValidationMessage For="@(() => registermyUser.Username)" />
     </div>
 
-    <div class="input-group mb-4 blockquote ">
+    <div class="mb-4 blockquote">
+        <label for="password" class="form-label">Password</label>
         <InputText type="password" @bind-Value="registermyUser.Password" class="form-control" />
         <ValidationMessage For="@(() => registermyUser.Password)" />
     </div>
 
-    <div class="input-group mb-4 blockquote ">
+    <div class="mb-4 blockquote">
+        <label for="email" class="form-label">Email</label>
         <InputText type="email" @bind-Value="registermyUser.Email" class="form-control" />
         <ValidationMessage For="@(() => registermyUser.Email)" />
     </div>
 
-    <div class="input-group mb-4 blockquote ">
+    <div class="mb-4 blockquote">
+        <label for="phonenumber" class="form-label">Phone Number</label>
         <InputText type="tel" @bind-Value="registermyUser.Phone" class="form-control" />
         <ValidationMessage For="@(() => registermyUser.Phone)" />
     </div>
 
-    <div class="input-group mb-4 blockquote">
+    <div class="mb-4 blockquote">
         <button class="btn btn-primary col-12" type="submit">
             Create Account
         </button>
@@ -143,7 +147,7 @@
         private static byte[] GetKeyBytes(IConfiguration config)
         {
             // Look for configured key; fall back to a development default.
-            var keyString = config["Encryption:Key"] ?? config["EncryptionKey"] ?? "429496729";
+            var keyString = config["Encryption:Key"] ?? config["EncryptionKey"] ?? "42949672923029302308263942161064621439669241699792636326974";
 
             // Derive a 32-byte key using SHA256
             using var sha = SHA256.Create();

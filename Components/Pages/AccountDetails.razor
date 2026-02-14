@@ -9,14 +9,15 @@
 
 <h3>Sign in/Create Account</h3>
 
-<div class="input-group mb-4 blockquote">
-    <input @bind="username" type="text" class="form-control" placeholder="Username" aria-label="Username" />
+<div class="mb-4 blockquote">
+    <label for="username">Username</label> 
+    <input @bind="username" type="text" class="form-control" aria-label="Username" />
 
 </div>
 
-<div class="input-group mb-4 blockquote ">
-
-    <input @bind="password" type="password" class="form-control" placeholder="Password" aria-label="Password" />
+<div class="mb-4 blockquote ">
+    <label for="password">Password</label>
+    <input @bind="password" type="password" class="form-control" aria-label="Password" />
 
 </div>
 
