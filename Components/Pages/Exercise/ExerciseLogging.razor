@@ -1,8 +1,10 @@
 ﻿@page "/exerciselogging"
+@using WebsiteFirstDraft.Data
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject WebsiteFirstDraft.Data.Models.AppDbContext Db
 @inject UserSessionService Session
+@inject IJSInteropService jsInterop
 <h3 class=text-center>ExerciseLogging</h3>
 <link rel="stylesheet " href="~/customcsspages/FoodLogging.css" />
 
@@ -39,16 +41,16 @@
                 {
                     <tr>
                         <td>
-                            <input @bind="exerciseType.ExerciseTypes" />
+                            <input @bind="exerciseType.ExerciseTypes" readonly/>
                         </td>
                         <td>
-                            <input @bind="exerciseType.ExerciseNames" />
+                            <input @bind="exerciseType.ExerciseNames" readonly />
                         </td>
                         <td>
-                            <input @bind="exerciseType.CaloriesBurnedPerMinute" />
+                            <input @bind="exerciseType.CaloriesBurnedPerMinute" readonly />
                         </td>
                         <td>
-                            <input @bind="exerciseType.IntensityLevel" class=@IntensityColour(exerciseType) />
+                            <input @bind="exerciseType.IntensityLevel" class=@IntensityColour(exerciseType) readonly />
                         </td>
                         <td>
                             <Button Color="ButtonColor.Success" @onclick="() => Update(exerciseType)">Save</Button>
@@ -63,16 +65,16 @@
                 {
                     <tr>
                         <td>
-                            <input @bind="exerciseType.ExerciseTypes" />
+                            <input @bind="exerciseType.ExerciseTypes" readonly />
                         </td>
                         <td>
-                            <input @bind="exerciseType.ExerciseNames" />
+                            <input @bind="exerciseType.ExerciseNames" readonly  />
                         </td>
                          <td>
-                            <input @bind="exerciseType.CaloriesBurnedPerMinute" />
+                            <input @bind="exerciseType.CaloriesBurnedPerMinute" readonly />
                         </td>
                         <td>
-                            <input @bind="exerciseType.IntensityLevel" class=@IntensityColour(exerciseType) />
+                            <input @bind="exerciseType.IntensityLevel" readonly class=@IntensityColour(exerciseType)  />
                         </td> 
                         <td>
                             <Button Color="ButtonColor.Success" @onclick="() => Update(exerciseType)">Save</Button>
@@ -95,7 +97,7 @@
                         <input @bind="newExerciseType.IntensityLevel" />
                     </td>
                     <td>
-                        <button type="button" @onclick="() => Create()">Add</button>
+                        <Button Color="ButtonColor.Primary" @onclick="Create">Add</Button> 
                     </td>
                 </tr>
             </tbody>

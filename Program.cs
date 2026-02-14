@@ -6,6 +6,7 @@ using WebsiteFirstDraft.Data.Models;
 using Syncfusion.Blazor;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
+using WebsiteFirstDraft.Data;
 
 namespace WebsiteFirstDraft
 {
@@ -38,6 +39,7 @@ namespace WebsiteFirstDraft
 
             builder.Services.AddScoped<WorkoutSplitGeneratorState>();
 
+            builder.Services.AddScoped<IJSInteropService, JSInteropService>();
 
             //builder.Services.AddSyncfusionBlazor();
             builder.Services.AddBootstrapBlazor();

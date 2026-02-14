@@ -1,9 +1,10 @@
 ﻿@page "/foodlogging"
+@using WebsiteFirstDraft.Data
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject WebsiteFirstDraft.Data.Models.AppDbContext Db
 @inject UserSessionService Session
-@* @inject UserFoodItems UserFoodItems *@
+@inject IJSInteropService jsInterop
 <link rel="stylesheet " href="~/customcsspages/FoodLogging.css"/>
 
 <h3 class="text-center">Food Logging</h3>
@@ -212,7 +213,7 @@
         Db.SaveChanges();
     }
 
-    void Delete(int id)
+    public async Task Delete(int id)
     {
         // Logs the deletion attempt (useful for debugging)
         System.Console.WriteLine($"Deleting {id}");
@@ -222,6 +223,9 @@
 
         // If the record does not exist, exit safely
         if (foodType is null) return;
+
+        var confirmed = await jsInterop.ConfirmAsync($"Are you sure you want to delete {foodType.Food_Name}?");
+        if (!confirmed) return;
 
         // Removes the entity from the database
         Db.Food_items.Remove(foodType);
@@ -242,9 +246,9 @@
     void Search()
     {
         // Queries the database for exercise types where
-        // the Food names field contains the search text
+        // the Food names field contains the search text (case insensitive)
         // and stores the results in myresults
-        myresults = [.. Db.Food_items.Where(e => e.Food_Name.Contains(searchText))];
+        myresults = [.. Db.Food_items.Where(e => EF.Functions.Like(e.Food_Name, $"%{searchText}%"))];
     }
 
 

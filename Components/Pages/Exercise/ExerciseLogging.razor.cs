@@ -1,7 +1,9 @@
 ﻿using BootstrapBlazor.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.JSInterop;
 using Plotly.NET;
+using Syncfusion.Blazor.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,9 +69,9 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
             Db.SaveChanges();
         }
 
-        void Delete(int id)
+        public async Task Delete(int id)
         {
-            // Logs the deletion attempt (useful for debugging)
+            // Logs the deletion attempt 
             System.Console.WriteLine($"Deleting {id}");
 
             // Finds the exercise type by primary key
@@ -78,12 +80,16 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
             // If the record does not exist, exit safely
             if (exerciseType is null) return;
 
-            // Removes the entity from the database
-            Db.exercise_types.Remove(exerciseType);
-            Db.SaveChanges();
+            var confirmed = await jsInterop.ConfirmAsync("Are you sure you want to delete this booking?");
 
-            // Removes the entity from the local list so the UI updates immediately
-            exercise_types.Remove(exerciseType);
+            if (confirmed)
+            {
+                Db.exercise_types.Remove(exerciseType);
+                Db.SaveChanges();
+
+                // Removes the entity from the local list so the UI updates immediately
+                exercise_types.Remove(exerciseType);
+            }
         }
 
         // Search functionality
@@ -97,9 +103,10 @@ namespace WebsiteFirstDraft.Components.Pages.Exercise
         void Search()
         {
             // Queries the database for exercise types where
-            // the ExerciseNames field contains the search text
+            // the ExerciseNames field contains the search text (case insensitive)
             // and stores the results in myresults
-            myresults = [.. Db.exercise_types.Where(e => e.ExerciseNames.Contains(searchText))];
+
+            myresults = [.. Db.exercise_types.Where(e => EF.Functions.Like(e.ExerciseNames, $"%{searchText}%"))];
         }
 
         // Method that will set the input class as a certain colour based off the value inside the cell
